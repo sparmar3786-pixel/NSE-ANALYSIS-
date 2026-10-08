@@ -7,8 +7,8 @@ android {
         applicationId = "com.sachin.tradeterminal"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0-phone"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -16,4 +16,7 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
 }
-dependencies { testImplementation("junit:junit:4.13.2") }
+dependencies {
+    implementation("androidx.webkit:webkit:1.8.0")
+    testImplementation("junit:junit:4.13.2")
+}

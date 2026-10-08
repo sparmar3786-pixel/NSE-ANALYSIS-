@@ -4,6 +4,9 @@ on:
     paths:
       - 'trade-terminal-android/**'
       - '.github/workflows/build-trade-terminal-apk.yml'
+      - 'frontend/**'
+      - 'backend/**'
+      - 'requirements.txt'
   workflow_dispatch:
   pull_request:
     paths:

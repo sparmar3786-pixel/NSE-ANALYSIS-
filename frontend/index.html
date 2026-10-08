@@ -55,12 +55,12 @@ th{color:var(--mut);font-weight:normal}
   <div class="col">
     <div class="card" style="position:relative">
       <h3>Search & Watchlist</h3>
-      <input id="q" placeholder="RELIANCE, NIFTY, SBIN…" autocomplete="off">
+      <input id="q" placeholder="NIFTY / BANKNIFTY / FINNIFTY / SENSEX…" autocomplete="off">
       <div id="res" class="res" style="display:none"></div>
       <div id="wl" style="margin-top:6px"></div>
     </div>
     <div class="card">
-      <h3>Angel One API</h3>
+      <h3>🔐 API SETTINGS · ANGEL ONE</h3>
       <input id="aKey" type="password" placeholder="API Key">
       <input id="aClient" placeholder="Client Code" style="margin-top:6px">
       <div class="row" style="margin-top:6px">
@@ -71,16 +71,16 @@ th{color:var(--mut);font-weight:normal}
         <select id="aMode"><option value="paper">PAPER</option><option value="live">LIVE</option></select>
         <button class="pri" id="btnAngel">Connect Angel</button>
       </div>
-      <div class="mut" style="margin-top:5px">Credentials go to your HTTPS backend; they are not bundled into the APK.</div>
+      <div class="mut" style="margin-top:5px">Credentials are sent only to your configured HTTPS backend; keys are not bundled in this APK.</div>
     </div>
     <div class="card">
-      <h3>AI API</h3>
+      <h3>🤖 AI API SETTINGS</h3>
       <input id="aiKey" type="password" placeholder="OpenAI API Key">
       <div class="row" style="margin-top:6px"><input id="aiModel" value="gpt-4o" placeholder="AI Model"><button class="pri" id="btnAIKey">Save AI Key</button></div>
-      <div class="mut" style="margin-top:5px">AI key HTTPS backend par set hoti hai; APK ke andar bundle nahi hoti.</div>
+      <div class="mut" style="margin-top:5px">AI key is sent to the configured HTTPS backend; it is not bundled inside this APK.</div>
     </div>
     <div class="card">
-      <h3>Index F&amp;O</h3>
+      <h3>📊 INDEX · FUTURES / OPTIONS</h3>
       <div class="row">
         <select id="fIndex"><option>NIFTY</option><option>BANKNIFTY</option><option>FINNIFTY</option><option>MIDCPNIFTY</option><option>SENSEX</option><option>BANKEX</option></select>
         <select id="fSegment"><option value="OPTIDX">OPTIONS</option><option value="FUTIDX">FUTURES</option></select>
@@ -90,17 +90,6 @@ th{color:var(--mut);font-weight:normal}
         <select id="fExp"></select>
       </div>
       <button id="btnFno" style="margin-top:6px;width:100%">Auto Select Index &amp; Load</button>
-    </div>
-    <div class="card">
-      <h3>F&amp;O</h3>
-      <div class="row">
-        <select id="fEx"><option value="NFO">NSE F&amp;O</option><option value="BFO">BSE F&amp;O</option></select>
-        <input id="fName" value="NIFTY" placeholder="Index" style="display:none">
-      </div>
-      <div class="row" style="margin-top:6px">
-        <select id="fExp"></select>
-        <button id="btnFno">Load F&amp;O</button>
-      </div>
     </div>
     <div class="card">
       <h3>Option chain</h3>

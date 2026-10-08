@@ -60,6 +60,31 @@ th{color:var(--mut);font-weight:normal}
       <div id="wl" style="margin-top:6px"></div>
     </div>
     <div class="card">
+      <h3>Angel One API</h3>
+      <input id="aKey" type="password" placeholder="API Key">
+      <input id="aClient" placeholder="Client Code" style="margin-top:6px">
+      <div class="row" style="margin-top:6px">
+        <input id="aPin" type="password" placeholder="PIN">
+        <input id="aTotp" type="password" placeholder="TOTP Secret">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <select id="aMode"><option value="paper">PAPER</option><option value="live">LIVE</option></select>
+        <button class="pri" id="btnAngel">Connect Angel</button>
+      </div>
+      <div class="mut" style="margin-top:5px">Credentials go to your HTTPS backend; they are not bundled into the APK.</div>
+    </div>
+    <div class="card">
+      <h3>F&amp;O</h3>
+      <div class="row">
+        <select id="fEx"><option value="NFO">NSE F&amp;O</option><option value="BFO">BSE F&amp;O</option></select>
+        <input id="fName" value="NIFTY" placeholder="NIFTY / BANKNIFTY / SENSEX">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <select id="fExp"></select>
+        <button id="btnFno">Load F&amp;O</button>
+      </div>
+    </div>
+    <div class="card">
       <h3>Option chain</h3>
       <div class="row"><input id="uName" value="NIFTY"><select id="uExp"></select></div>
       <div class="row" style="margin-top:6px"><input id="uSpot" placeholder="spot (auto)"><button id="btnChain">Load</button></div>
@@ -141,7 +166,29 @@ function log(m){const d=$('#log');d.innerHTML+=`<div>${m}</div>`;d.scrollTop=d.s
 const f2=n=>(n==null||isNaN(n))?'—':Number(n).toFixed(2);
 
 // ---------- status
-async function loadStatus(){
+async async function loadAngelConfig(){
+  try{
+    const c=await api('/api/angel/config');
+    $('#aClient').value=c.client_code||'';
+    $('#aMode').value=c.trading_mode||'paper';
+  }catch(e){log('Angel config: '+e.message)}
+}
+$('#btnAngel').onclick=async()=>{
+  const body={api_key:$('#aKey').value,client_code:$('#aClient').value,pin:$('#aPin').value,totp_secret:$('#aTotp').value,trading_mode:$('#aMode').value};
+  if(!body.api_key||!body.client_code||!body.pin||!body.totp_secret){log('Angel API: fill all four fields');return}
+  try{const r=await api('/api/angel/config',{body});log(r.ok?'Angel One connected':'Angel connect failed: '+(r.error||'unknown'));loadStatus()}catch(e){log('Angel connect failed: '+e.message)}
+};
+async function loadFnoExpiries(){
+  try{
+    const e=await api('/api/expiries?name='+encodeURIComponent($('#fName').value)+'&exchange='+$('#fEx').value);
+    $('#fExp').innerHTML=e.map(x=>'<option>'+x+'</option>').join('');
+    $('#uName').value=$('#fName').value; $('#uExp').innerHTML=e.map(x=>'<option>'+x+'</option>').join('');
+  }catch(err){log('F&O expiries: '+err.message)}
+}
+$('#fEx').onchange=loadFnoExpiries;
+$('#fName').onchange=loadFnoExpiries;
+$('#btnFno').onclick=async()=>{await loadFnoExpiries();$('#btnChain').click()};
+function loadStatus(){
   status=await api('/api/status');
   setPill('#pAngel',status.logged_in?'Angel: connected':'Angel: '+(status.login_error||'logging in…'),status.logged_in?'ok':'bad');
   setPill('#pFeed',status.ws?'Feed: live':'Feed: off',status.ws?'ok':'bad');
@@ -168,6 +215,8 @@ function connectWS(){
   setInterval(()=>ws.readyState===1&&ws.send('ping'),20000);
 }
 connectWS();
+loadAngelConfig();
+loadFnoExpiries();
 api('/api/snapshot').then(s=>{ticks=s.ticks;watch=s.meta;renderWL();renderPos(s.positions)});
 
 // ---------- search / watchlist
@@ -236,7 +285,7 @@ function drawLines(plan){
 // ---------- option chain
 $('#uName').onchange=loadExpiries;
 async function loadExpiries(){
-  try{const e=await api('/api/expiries?name='+$('#uName').value);$('#uExp').innerHTML=e.map(x=>`<option>${x}</option>`).join('')}catch(err){log('expiries: '+err.message)}
+  try{const e=await api('/api/expiries?name='+encodeURIComponent($('#fName').value)+'&exchange='+$('#fEx').value);$('#uExp').innerHTML=e.map(x=>`<option>${x}</option>`).join('')}catch(err){log('expiries: '+err.message)}
 }
 loadExpiries();
 $('#btnChain').onclick=async()=>{
@@ -244,9 +293,9 @@ $('#btnChain').onclick=async()=>{
   if(!spot&&sel&&ticks[sel.key])spot=ticks[sel.key].ltp;
   if(!spot){log('Spot daalo ya underlying select karo (live price chahiye)');return}
   try{
-    const rows=await api(`/api/options?name=${$('#uName').value}&expiry=${$('#uExp').value}&spot=${spot}&n=7`);
+    const rows=await api(`/api/options?name=${$('#fName').value}&expiry=${$('#fExp').value}&spot=${spot}&n=7&exchange=${$('#fEx').value}`);
     $('#chain').innerHTML='<tr><th>CE</th><th>Strike</th><th>PE</th></tr>'+rows.map(r=>`<tr class="${r.atm?'atm':''}"><td data-s="${r.CE?r.CE.symbol:''}" data-t="${r.CE?r.CE.token:''}">${r.CE?'CE':'—'}</td><td>${r.strike}</td><td data-s="${r.PE?r.PE.symbol:''}" data-t="${r.PE?r.PE.token:''}">${r.PE?'PE':'—'}</td></tr>`).join('');
-    $('#chain').querySelectorAll('td[data-t]').forEach(td=>{if(td.dataset.t)td.onclick=()=>addWatch({exchange:'NFO',token:td.dataset.t,symbol:td.dataset.s})});
+    $('#chain').querySelectorAll('td[data-t]').forEach(td=>{if(td.dataset.t)td.onclick=()=>addWatch({exchange:$('#fEx').value,token:td.dataset.t,symbol:td.dataset.s})});
   }catch(e){log('chain: '+e.message)}
 };
 

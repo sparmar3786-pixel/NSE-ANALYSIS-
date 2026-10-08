@@ -339,19 +339,25 @@ def search(q: str):
 
 
 @app.get("/api/expiries")
-def expiries(name: str):
+def expiries(name: str, exchange: str = "NFO"):
+    exchange = exchange.upper()
+    if exchange not in FNO_SEGMENTS:
+        raise HTTPException(400, "exchange must be NFO or BFO")
     load_master()
     name = name.upper()
-    exp = {r["expiry"] for r in S.master if r["exch_seg"] == "NFO" and r["name"] == name and r["instrumenttype"] in ("OPTIDX", "OPTSTK")}
+    exp = {r["expiry"] for r in S.master if r["exch_seg"] == exchange and r["name"] == name and r["instrumenttype"] in ("OPTIDX", "OPTSTK")}
     return sorted(exp, key=lambda x: dt.datetime.strptime(x, "%d%b%Y"))
 
 
 @app.get("/api/options")
-def options(name: str, expiry: str, spot: float, n: int = 8):
+def options(name: str, expiry: str, spot: float, n: int = 8, exchange: str = "NFO"):
+    exchange = exchange.upper()
+    if exchange not in FNO_SEGMENTS:
+        raise HTTPException(400, "exchange must be NFO or BFO")
     """Strikes around spot with CE/PE tokens for one expiry."""
     load_master()
     name = name.upper()
-    rows = [r for r in S.master if r["exch_seg"] == "NFO" and r["name"] == name and r["expiry"] == expiry and r["instrumenttype"] in ("OPTIDX", "OPTSTK")]
+    rows = [r for r in S.master if r["exch_seg"] == exchange and r["name"] == name and r["expiry"] == expiry and r["instrumenttype"] in ("OPTIDX", "OPTSTK")]
     by = {}
     for r in rows:
         strike = float(r["strike"]) / 100.0

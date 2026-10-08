@@ -1,0 +1,41 @@
+name: Build Trade Terminal APK
+on:
+  push:
+    paths:
+      - 'trade-terminal-android/**'
+      - '.github/workflows/build-trade-terminal-apk.yml'
+      - 'frontend/**'
+      - 'backend/**'
+      - 'requirements.txt'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'trade-terminal-android/**'
+      - '.github/workflows/build-trade-terminal-apk.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: trade-terminal-android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          accept-android-sdk-licenses: true
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - run: gradle --no-daemon :app:assembleDebug
+      - run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Trade-Terminal-fresh-debug
+          path: trade-terminal-android/app/build/outputs/apk/debug/app-debug.apk

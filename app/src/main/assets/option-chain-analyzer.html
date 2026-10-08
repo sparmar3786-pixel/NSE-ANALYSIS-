@@ -23,7 +23,15 @@ textarea{width:100%;min-height:82px;background:#08111a;color:var(--txt);border:1
  <div class="row"><button class="primary" id="sample">⚡ Load embedded NSE sample</button><button id="export">⇩ Export plans CSV</button><button class="danger" id="clear">× Clear</button></div>
 </div>
 
-<div class="grid">
+<section class="panel" id="angel-panel">
+<h3>🔐 Angel One Live Connection</h3>
+<div class="small">Credentials stay on the secure backend. The APK stores only the backend URL.</div>
+<div class="row" style="margin-top:8px">
+<input id="angelBackend" value="http://10.0.2.2:8000" placeholder="Angel backend URL" style="flex:1;min-width:220px">
+<button class="primary" id="angelConnect">Connect Angel One</button><button id="angelHealth">Check</button>
+</div>
+<div id="angelStatus" class="small" style="margin-top:7px">Not connected</div>
+</section><div class="grid">
 <section class="panel">
 <h3>1) Upload option-chain data</h3>
 <div class="drop" id="drop">Drop NSE CSV / TSV / TXT here<br><span class="small">This version explicitly supports the NSE format: CALLS → OI / CHNG IN OI / VOLUME / IV / LTP / CHNG … STRIKE … CHNG / LTP / IV / VOLUME / CHNG IN OI / OI → PUTS</span><br><br><input id="files" type="file" multiple accept=".csv,.tsv,.txt"></div>
@@ -533,5 +541,5 @@ $('export').onclick=()=>{if(!S.plans.length)return;let h=['INDEX','EXPIRY','SPOT
 refreshIndices();render();
 runBacktest();
 </script>
-</body></html>
+<script>(function(){const key='nse_angel_backend',b=document.getElementById('angelBackend'),s=document.getElementById('angelStatus');if(!b||!s)return;b.value=localStorage.getItem(key)||b.value;b.onchange=()=>localStorage.setItem(key,b.value.trim().replace(/\/$/,''));async function health(){const x=b.value.trim().replace(/\/$/,'');if(!x){s.textContent='Enter backend URL';return}s.textContent='Checking Angel backend…';try{const r=await fetch(x+'/health');const j=await r.json();s.textContent=j.ok?(j.angel_configured?'Backend ready • Angel credentials configured':'Backend online • Angel credentials missing'):'Backend unhealthy'}catch(e){s.textContent='Backend unreachable: '+e.message}}async function connect(){b.onchange();const x=b.value.trim().replace(/\/$/,'');if(!x){s.textContent='Enter backend URL';return}s.textContent='Connecting Angel One…';try{const r=await fetch(x+'/v1/angel/login',{method:'POST'});const j=await r.json();if(!r.ok)throw new Error(j.detail||'Login failed');s.textContent='✓ Angel One session connected • feed token received'}catch(e){s.textContent='Angel One connection failed: '+e.message}}document.getElementById('angelHealth').onclick=health;document.getElementById('angelConnect').onclick=connect})();</script></body></html>
 <script>window.addEventListener("DOMContentLoaded",()=>{try{syncEntryControls();}catch(e){}});</script>

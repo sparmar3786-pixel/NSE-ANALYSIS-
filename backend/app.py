@@ -343,13 +343,13 @@ def search(q: str):
         return []
     out = []
     for r in S.master:
-        if r["exch_seg"] not in ("NSE", "BSE", "MCX"):
+        if r["exch_seg"] not in FNO_SEGMENTS or r["instrumenttype"] not in ("OPTIDX", "FUTIDX"):
             continue
         sym, name = r["symbol"].upper(), r["name"].upper()
+        if name not in INDEX_NAMES:
+            continue
         if ql in sym or ql in name:
-            if r["exch_seg"] == "NSE" and not (sym.endswith("-EQ") or r["instrumenttype"] == "AMXIDX"):
-                continue
-            out.append({"symbol": r["symbol"], "name": r["name"], "token": r["token"], "exchange": r["exch_seg"]})
+            out.append({"symbol": r["symbol"], "name": r["name"], "token": r["token"], "exchange": r["exch_seg"], "segment": r["instrumenttype"]})
         if len(out) >= 25:
             break
     return out

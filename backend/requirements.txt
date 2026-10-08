@@ -1,0 +1,7 @@
+smartapi-python>=1.5.3
+pyotp>=2.9.0
+logzero>=1.7.0
+websocket-client>=1.8.0
+requests>=2.32.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0

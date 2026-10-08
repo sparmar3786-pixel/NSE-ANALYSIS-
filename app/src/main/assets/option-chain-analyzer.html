@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Index Option Chain — 70+ Setup Signal Planner</title>
+<style>
+:root{--bg:#070c12;--p:#0e1722;--p2:#111d2a;--line:#243548;--txt:#edf3fa;--mut:#8fa3b8;--g:#35d07f;--r:#ff6677;--c:#3dd7d1;--b:#56a9ff;--y:#ffd166}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#14263a,#070c12 42%);color:var(--txt);font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.wrap{max-width:1550px;margin:auto;padding:16px}.head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.title{font-size:21px;font-weight:800}.sub{color:var(--mut);font-size:11px}
+.panel{background:linear-gradient(180deg,#111a25,#0b131c);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.controls{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:8px}.field label{display:block;color:var(--mut);font-size:11px;margin-bottom:4px}.field input,.field select,button{width:100%;background:#09121d;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px}.row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}button{cursor:pointer;font-weight:700}.primary{background:#153a5c;border-color:#2f6e9f}.danger{background:#35151d;border-color:#69303d}.drop{border:1px dashed #45617b;border-radius:10px;padding:18px;text-align:center;color:var(--mut);background:#09121b}.drop.drag{border-color:var(--c);background:#0b2026}.files{margin-top:8px;display:grid;gap:7px}.file{display:grid;grid-template-columns:1fr 150px auto;gap:7px;padding:8px;background:#0a131d;border:1px solid var(--line);border-radius:8px}.ok{color:#83e8af}.err{color:#ff8b99;background:#2a1117;border:1px solid #5a2530;padding:8px;border-radius:8px;margin-top:8px}.warn{color:#ffe09a;background:#2a2110;border:1px solid #60491b;padding:8px;border-radius:8px;margin-top:8px}
+textarea{width:100%;min-height:82px;background:#08111a;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px ui-monospace,Consolas,monospace}.checks{display:flex;gap:10px;flex-wrap:wrap}.checks label{color:#c1cedb}.checks input{accent-color:var(--c)}
+.stats{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:12px}.stat{background:#0c1621;border:1px solid var(--line);border-radius:9px;padding:9px}.stat b{font-size:18px}.stat span{display:block;color:var(--mut);font-size:10px}.green{color:var(--g)}.red{color:var(--r)}.cyan{color:var(--c)}.yellow{color:var(--y)}
+.table{overflow:auto;border:1px solid var(--line);border-radius:9px}table{border-collapse:collapse;width:100%;min-width:1450px}th,td{padding:7px 8px;border-bottom:1px solid #1e2c3a;white-space:nowrap;text-align:left}th{position:sticky;top:0;background:#132030;color:#9fb1c3;font-size:10px}tr:hover td{background:#101c28}.sig{font-weight:800}.score{font-weight:900}.formula{background:#0a131c;border:1px solid var(--line);padding:10px;border-radius:9px;color:#bdcbd8}.formula code{color:#dce8f5}.small{font-size:11px;color:var(--mut)}.tag{display:inline-block;background:#16273a;border:1px solid #2a425b;padding:2px 7px;border-radius:99px;margin-right:4px}.bar{height:8px;border-radius:99px;background:#172534;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#345e83,#42d0b7)}.planbox{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.card{background:#0b151f;border:1px solid var(--line);border-radius:9px;padding:10px}.card b{font-size:16px}.card small{color:var(--mut)}.spike-hot{color:#ffb3c1;font-weight:900}.spike-early{color:#ffd166;font-weight:900}.spike-confirm{color:#35d07f;font-weight:900}.spike-fake{color:#8fa3b8;font-weight:900}.atm-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}.atm-dual .card{min-height:150px}.atm-badge{display:inline-block;padding:3px 8px;border-radius:99px;border:1px solid #2a425b;background:#132030;font-size:10px;font-weight:800}.atm-plan-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.atm-plan-price{font-size:20px;font-weight:900}.atm-plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.atm-kv{background:#0a131c;border:1px solid var(--line);border-radius:7px;padding:7px}.atm-kv small{display:block;color:var(--mut);font-size:9px}.atm-kv b{font-size:13px}@media(max-width:800px){.atm-dual{grid-template-columns:1fr}.atm-plan-grid{grid-template-columns:repeat(2,1fr)}}
+.strike-wrap{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:145px;font-weight:900}.strike-core{font-size:14px;color:var(--txt);min-width:58px;text-align:center}.mini-arrows{display:inline-flex;gap:2px;align-items:center}.mini-arrow{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:4px;font-size:12px;font-weight:900;line-height:1}.mini-up{color:var(--g);background:rgba(53,208,127,.10)}.mini-down{color:var(--r);background:rgba(255,102,119,.10)}.mini-flat{color:var(--mut);background:rgba(143,163,184,.08)}.side-mini{font-size:9px;color:var(--mut);font-weight:800;display:flex;align-items:center;gap:2px}.strike-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--mut);font-size:11px}.strike-legend b{color:var(--txt)}.meter{height:7px;background:#172534;border-radius:99px;overflow:hidden}.meter i{display:block;height:100%;background:linear-gradient(90deg,#ffd166,#ff6677)}@media(max-width:1000px){.grid{grid-template-columns:1fr}.controls{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.planbox{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.controls,.stats,.planbox{grid-template-columns:1fr}.file{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:9999;background:#102030;color:#dff7ff;padding:8px 12px;font-size:13px;border-bottom:1px solid #29445a">OFFLINE-SAFE V10 • This file runs from the saved HTML file with local NSE CSV/TSV/TXT data. Live NSE mode depends on internet/NSE access and may be blocked by browser/NSE protection; the app will not invent live data.</div>
+<div class="wrap">
+<div class="head">
+ <div><div class="title">NSE / SENSEX Option Flow • EMA 8/13 + WaveTrend + OI Engine V10</div><div class="sub">Offline-safe CSV analyzer • 4-state OI classification • snapshot flow + MTF trend confirmation</div></div>
+ <div class="row"><button class="primary" id="sample">⚡ Load embedded NSE sample</button><button id="export">⇩ Export plans CSV</button><button class="danger" id="clear">× Clear</button></div>
+</div>
+
+<div class="grid">
+<section class="panel">
+<h3>1) Upload option-chain data</h3>
+<div class="drop" id="drop">Drop NSE CSV / TSV / TXT here<br><span class="small">This version explicitly supports the NSE format: CALLS → OI / CHNG IN OI / VOLUME / IV / LTP / CHNG … STRIKE … CHNG / LTP / IV / VOLUME / CHNG IN OI / OI → PUTS</span><br><br><input id="files" type="file" multiple accept=".csv,.tsv,.txt"></div>
+<div id="fileList" class="files"></div>
+<h3>Raw paste</h3><textarea id="paste" placeholder="Paste the complete NSE option-chain CSV/table here"></textarea>
+<div class="row" style="margin-top:7px"><select id="pasteIndex"><option>NIFTY</option><option>BANKNIFTY</option><option>FINNIFTY</option><option>MIDCPNIFTY</option><option>NIFTYNXT50</option><option>SENSEX</option><option>BANKEX</option></select><button id="addPaste">＋ Read pasted chain</button></div>
+<div class="panel" style="margin-top:10px;border-color:#2f6e9f"><h3>⚡ Live NSE Signal Mode — market hours</h3><div class="row"><select id="liveIndex" style="max-width:180px"><option>NIFTY</option><option>BANKNIFTY</option><option>FINNIFTY</option><option>MIDCPNIFTY</option><option>NIFTYNXT50</option></select><button class="primary" id="liveStart">▶ Start Live Analysis</button><button id="liveOnce">↻ Refresh Now</button><button id="liveStop">■ Stop</button><span id="liveState" class="tag">OFF</span></div><div id="liveStatus" class="small" style="margin-top:7px">Live mode attempts to read the official NSE option-chain API directly from this browser. If the browser/NSE blocks cross-origin requests, use the CSV upload/raw-paste route; the page will show the exact error instead of inventing live data.</div><div id="liveSignal" style="margin-top:8px"></div></div>
+<div id="msg"></div>
+</section>
+
+<section class="panel">
+<h3>2) Timeframe & risk engine</h3>
+<div class="controls">
+ <div class="field"><label>Trade timeframe</label><select id="tf">
+<option value="1m">1 min</option><option value="2m">2 mins</option><option value="3m">3 mins</option><option value="5m">5 mins</option><option value="10m">10 mins</option><option value="15m" selected>15 mins</option><option value="30m">30 mins</option><option value="1h">1 hour</option><option value="2h">2 hours</option><option value="4h">4 hours</option><option value="1d">1 day</option>
+</select></div>
+ <div class="field"><label>Historical snapshot interval</label><select id="dataStep"><option value="1">1 min</option><option value="2">2 mins</option><option value="3">3 mins</option><option value="5">5 mins</option><option value="10">10 mins</option><option value="15" selected>15 mins</option><option value="30">30 mins</option><option value="60">1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="375">1 trading day</option></select></div>
+ <div class="field"><label>Minimum setup score</label><input id="minScore" type="number" value="70" min="0" max="100"></div>
+ <div class="field"><label>SL premium %</label><input id="slPct" type="number" value="8" min="1" step="0.5"></div>
+ <div class="field"><label>Risk : Reward</label><select id="rr"><option>1</option><option>1.5</option><option selected>2</option><option>3</option></select></div><div class="field"><label>Minimum T1 points</label><input id="minTargetPts" type="number" value="10" min="1" step="1"></div><div class="field"><label>Maximum T1 points</label><input id="maxTargetPts" type="number" value="30" min="1" step="1"></div>
+ <div class="field"><label>Entry strike mode</label><select id="entryMode"><option value="auto" selected>Auto — best scored strike</option><option value="atm">ATM strike only</option><option value="manual">Manual strike</option></select></div>
+ <div class="field"><label>Manual entry strike</label><input id="manualStrike" type="number" step="0.05" placeholder="e.g. 23450"></div>
+ <div class="field"><label>Strike window</label><input id="window" type="number" value="6" min="1" max="20"></div>
+ <div class="field"><label>Spot override (optional)</label><input id="spotOverride" type="number" placeholder="auto parity estimate"></div>
+ <div class="field"><label>Capital ₹</label><input id="capital" type="number" value="100000"></div>
+ <div class="field"><label>Risk / trade %</label><input id="risk" type="number" value="1" step=".1"></div>
+ <div class="field"><label>Spike threshold %</label><input id="spikePct" type="number" value="8" min="1" step="0.5"></div>
+ <div class="field"><label>Volume burst ×</label><input id="spikeVol" type="number" value="2" min="1" step="0.25"></div>
+ <div class="field"><label>Spike lookback</label><select id="spikeLook"><option value="1">Previous snapshot</option><option value="2">2 snapshots</option><option value="3">3 snapshots</option></select></div>
+</div>
+<h3 style="margin-top:12px">Indices</h3><div class="checks" id="indices"></div>
+<div class="formula" style="margin-top:10px">
+<b>V10 engine</b><br>Uses <b>8/13 EMA</b> and <b>WaveTrend</b> (Channel 10 / Average 21 / OB +60/+53 / OS −60/−53), plus option premium/OI flow, OI walls, volume and liquidity. Four-state classification: <b>Long Buildup, Short Covering, Short Buildup, Long Unwinding</b>. Snapshot-to-snapshot OI/premium change is preferred when timestamped history exists; exchange daily CHNG IN OI is the fallback.<br><br><b>Entry rule:</b> buy CE only for a bullish setup and buy PE only for a bearish setup. Mixed daily OI vs short-term flow/trend is blocked rather than forced into a trade.<br><br><b>Exit rule:</b> T1, T2, premium SL, underlying invalidation, trend/flow reversal, or selected timeframe time-stop. T1 is constrained to the configured 10–30 point range by default.<br><br>
+Signal: <code>Long Buildup = ΔOI &gt; 0 AND option Δprice &gt; 0</code>; <code>Short Covering = ΔOI &lt; 0 AND option Δprice &gt; 0</code>.<br>
+Setup score: <code>25 signal + 20 price momentum + 15 ΔOI strength + 15 volume percentile + 10 ATM proximity + 10 liquidity + 5 PCR/chain alignment</code>.<br>
+Entry: controlled by <code>Entry strike mode</code>. <b>ATM strike only</b> restricts signals to the nearest strike to spot; <b>Manual strike</b> restricts signals to the nearest available strike to the entered value; <b>Auto</b> selects the best-scored eligible strike. Entry price: <code>max(BID, min(LTP, ASK))</code> when quotes exist; otherwise LTP.<br>
+Delta proxy: <code>|CE(K−step) − CE(K+step)| / (2×step)</code> for CE, analogous PE. Underlying targets use the next OI wall; option target ≈ <code>Entry + Δ × (TargetUnderlying − Spot)</code> for bullish plans.<br>
+SL: the tighter of premium-% stop and chain invalidation estimate, with a floor to avoid zero/negative premium. Target 2 uses R:R. Exit = Target/SL hit, signal invalidation, or the selected timeframe time-stop. Backtest uses future uploaded snapshots only; entry uses ASK when available and exits use BID when available. Spike detector: premium velocity + volume burst + OI confirmation; it requires timestamped consecutive snapshots and does not claim a statistical probability from one snapshot.
+</div>
+</section>
+</div>
+
+<section class="panel">
+<h3>🔥 Spike Movement Detector</h3>
+<div class="small">Detects sudden CE/PE premium movement using premium velocity, acceleration, volume burst and OI confirmation. A single snapshot cannot establish a spike; at least two timestamped snapshots are required.</div>
+<div id="spikeSummary" class="planbox" style="margin-top:10px"></div>
+<div class="table" style="margin-top:10px"><table id="spikeTable"><thead><tr><th>TIME</th><th>INDEX</th><th>EXPIRY</th><th>STRIKE</th><th>SIDE</th><th>STAGE</th><th>PREMIUM</th><th>MOVE %</th><th>OI Δ</th><th>VOLUME BURST</th><th>SIGNAL</th><th>ENTRY</th><th>SL</th><th>TARGET</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<div class="stats">
+<div class="stat"><b id="spot">—</b><span>Underlying / parity</span></div><div class="stat"><b id="atm">—</b><span>ATM strike</span></div><div class="stat"><b id="dte">—</b><span>Days to expiry</span></div><div class="stat"><b class="green" id="bull">0</b><span>Bullish setups</span></div><div class="stat"><b class="red" id="bear">0</b><span>Bearish setups</span></div><div class="stat"><b id="total">0</b><span>70+ setups</span></div><div class="stat"><b class="cyan" id="top">—</b><span>Top plan</span></div><div class="stat"><b id="atmEntry">—</b><span>ATM entry CE / PE</span></div>
+</div>
+
+<section class="panel">
+<h3>⚙️ Multi-Timeframe Trend + OI State</h3>
+<div id="marketState" class="planbox"><div class="card small">Upload timestamped option-chain snapshots to calculate EMA 8/13 and WaveTrend across timeframes.</div></div>
+<div class="small" style="margin-top:8px">Exact 1m/2m/3m/5m/10m/15m/30m/1h/1d EMA/WaveTrend needs enough timestamped snapshots (or OHLC candles). The engine never invents missing bars. A single chain snapshot can still produce an OI-flow plan, but it will show trend confirmation as unavailable.</div>
+</section>
+
+<section class="panel">
+<h3>3) Detected ATM — CE + PE Entry / Exit / SL / Target</h3>
+<div class="row" style="align-items:end"><div class="field"><label>ATM plan strike</label><input id="atmPlanStrike" type="number" placeholder="Auto detected ATM" step="50"></div><div class="small">This panel calculates both CE and PE for the detected ATM strike from the uploaded NSE chain. Entry uses available bid/ask/LTP; SL and targets use the same chain-invalidation + risk/reward engine. Exit = T1 hit, SL hit, signal invalidation, or selected timeframe time-stop.</div></div>
+<div id="atmDualPlans" class="atm-dual" style="margin-top:10px"></div>
+</section>
+
+<section class="panel">
+<h3>3) Entry / Exit / Stop Loss / Target plans</h3>
+<div id="planCards" class="planbox"></div>
+<div class="table">
+<table><thead><tr><th>INDEX</th><th>EXPIRY</th><th>SPOT</th><th>ATM</th><th>ENTRY STRIKE</th><th>SIDE</th><th>SIGNAL</th><th>DIRECTION</th><th>ENTRY</th><th>SL</th><th>TARGET 1</th><th>TARGET 2</th><th>UNDERLYING TARGET</th><th>OI WALL</th><th>ΔOI</th><th>PRICE Δ</th><th>VOLUME</th><th>SETUP SCORE</th><th>TIMEFRAME</th></tr></thead><tbody id="plans"><tr><td colspan="19" class="small">Upload a chain or load the embedded sample.</td></tr></tbody></table>
+</div>
+</section>
+
+<section class="panel">
+<h3>4) Chain diagnostics</h3>
+<div id="diag" class="small">—</div>
+</section>
+
+<section class="panel">
+<h3>5) Parsed option chain</h3><div class="small" style="margin-bottom:7px">At each strike, tiny arrows show <b>Premium direction + OI direction</b>: green ↑ = up, red ↓ = down. CE is shown on the left, PE on the right.</div>
+<div class="table">
+<table id="chain"><thead></thead><tbody></tbody></table>
+</div>
+<div class="small" style="margin-top:8px">The uploaded NSE file is read locally in the browser. No data is sent to a server.</div>
+</section>
+
+<section class="panel">
+<h3>6) Historical backtest — real uploaded snapshots only</h3>
+<div class="formula"><b>Entry strike control:</b> The backtest uses the same selected <b>Entry strike mode</b> as the live planner. Select <b>ATM strike only</b> to backtest only the nearest ATM CE/PE at each snapshot, or <b>Manual strike</b> for a chosen strike.
+<br><br><b>Backtest integrity:</b> 100 means 100 <b>completed trades per tested timeframe</b>, not repeated observations of the same signal. Signals are matched by INDEX + EXPIRY + STRIKE + CE/PE, and timeframe calculations require real snapshot timestamps. If timestamps are missing, the tool must not claim 1m/5m/15m performance.<br><br><b>No fake 100-trade result:</b> this backtest only counts trades that can be reconstructed from <b>multiple dated option-chain snapshots</b>. One snapshot can generate signals, but it cannot prove whether SL/target was hit later. Upload 100+ historical NSE option-chain CSV snapshots (preferably same index/expiry and dated filenames). The engine will then generate signals, enter at the signal snapshot ASK when available, and walk forward through later snapshots for SL/Target. If fewer than 100 completed trades exist, it will show the actual count instead of inventing a 100-trade result.</div>
+<div class="stats" style="margin-top:10px;grid-template-columns:repeat(6,1fr)">
+<div class="stat"><b id="btSnapshots">0</b><span>Historical snapshots</span></div><div class="stat"><b id="btSignals">0</b><span>Signals tested</span></div><div class="stat"><b id="btTrades">0</b><span>Completed trades</span></div><div class="stat"><b class="green" id="btWins">0</b><span>Targets hit</span></div><div class="stat"><b class="red" id="btLosses">0</b><span>Stops hit</span></div><div class="stat"><b id="btWinRate">—</b><span>Win rate</span></div>
+</div>
+<div id="btMsg" class="small" style="margin-top:8px">Upload historical snapshots to run the backtest.</div>
+<div id="tfSummary" class="table" style="margin-top:10px"><table><thead><tr><th>TIMEFRAME</th><th>HORIZON</th><th>TRADES</th><th>TARGETS</th><th>STOPS</th><th>TIME EXITS</th><th>EMPIRICAL WIN RATE</th><th>STATUS</th></tr></thead><tbody id="tfRows"><tr><td colspan="8" class="small">Upload dated snapshots to calculate timeframe-wise empirical win rates.</td></tr></tbody></table></div>
+<div class="small" style="margin-top:8px">Win rate is calculated only from observed historical outcomes. It is <b>not</b> a future probability. “Data-supported” means at least 30 target/stop-decided trades for that timeframe. The selected timeframe also sets the maximum holding horizon used by the backtest and the time-based exit shown in the plan.</div>
+<div class="table" style="margin-top:8px"><table><thead><tr><th>DATE/SNAPSHOT</th><th>INDEX</th><th>EXPIRY</th><th>STRIKE</th><th>SIDE</th><th>SIGNAL</th><th>TIMEFRAME</th><th>ENTRY</th><th>SL</th><th>TARGET 1</th><th>EXIT</th><th>RESULT</th><th>R-MULT</th><th>HOLD SNAPSHOTS</th></tr></thead><tbody id="btRows"><tr><td colspan="14" class="small">No backtest trades yet.</td></tr></tbody></table></div>
+</section>
+
+<section class="panel">
+<h3>Important probability note</h3>
+<div class="warn">A single option-chain snapshot cannot honestly prove a real <b>70% probability</b> of profit. This tool therefore uses <b>70+ as a setup-score threshold</b>, not a statistically calibrated win probability. A true 70% probability would require historical labelled trades/backtesting and out-of-sample calibration. The score is designed to combine OI, premium momentum, volume, liquidity, ATM proximity and OI-wall structure without claiming certainty.</div>
+</section>
+</div>
+
+<script>
+const EMBEDDED="CALLS,,PUTS\n,OI,CHNG IN OI,VOLUME,IV,LTP,CHNG,BID QTY,BID,ASK,ASK QTY,STRIKE,BID QTY,BID,ASK,ASK QTY,CHNG,LTP,IV,VOLUME,CHNG IN OI,OI,\n,-,-,-,-,-,-,\"1,690\",\"7,918.10\",\"8,751.95\",\"1,690\",\"15,000.00\",\"1,300\",0.40,0.50,\"1,755\",-,0.40,107.67,\"1,939\",4,\"1,576\",\n,-,-,-,-,-,-,780,\"6,368.35\",\"7,601.25\",780,\"16,500.00\",\"1,950\",0.35,0.40,\"6,825\",-0.05,0.35,85.15,\"1,988\",46,\"2,053\",\n,12,-,-,108.18,-,-,130,\"5,414.75\",\"5,508.90\",65,\"18,000.00\",\"24,830\",0.40,0.45,\"3,445\",-0.05,0.40,66.06,\"6,411\",-37,\"12,404\",\n,\"1,862\",-136,221,-,\"3,951.75\",70.25,195,\"3,950.25\",\"3,985.85\",65,\"19,500.00\",650,0.75,0.80,\"8,775\",0.20,0.80,50.36,\"25,209\",\"1,327\",\"18,116\",\n,\"6,864\",-454,671,-,\"2,452.00\",60.10,195,\"2,454.80\",\"2,466.95\",650,\"21,000.00\",\"1,45,535\",0.85,0.90,\"4,810\",-0.40,0.90,32.06,\"1,35,259\",\"27,926\",\"1,39,428\",\n,-,-,-,-,-,-,780,\"1,857.50\",\"2,245.15\",780,\"21,350.00\",650,1.25,1.30,\"1,755\",-0.20,1.30,28.85,\"1,03,366\",\"28,795\",\"31,024\",\n,1,-,-,-,-,-,780,\"1,839.60\",\"2,118.45\",845,\"21,400.00\",\"1,300\",1.30,1.35,65,-0.30,1.35,28.33,\"1,33,936\",\"34,162\",\"40,098\",\n,-,-,-,-,-,-,780,\"1,793.80\",\"2,198.10\",780,\"21,450.00\",715,1.40,1.50,\"1,170\",-0.15,1.45,27.91,\"34,862\",\"2,321\",\"2,717\",\n,-,-,1,-,\"1,940.00\",-824.60,520,\"1,947.80\",\"1,971.90\",390,\"21,500.00\",65,1.40,1.45,780,-0.30,1.45,27.27,\"1,77,313\",\"11,330\",\"58,987\",\n,-,-,-,-,-,-,780,\"1,637.70\",\"2,058.95\",780,\"21,550.00\",650,1.50,1.55,\"1,365\",-0.30,1.45,26.63,\"10,468\",\"1,236\",\"1,450\",\n,652,-1,2,-,\"1,845.00\",65.50,65,\"1,855.05\",\"1,950.90\",780,\"21,600.00\",\"2,730\",1.50,1.60,65,-0.40,1.50,26.09,\"50,491\",\"-2,027\",\"13,690\",\n,1,-,-,32.96,-,-,65,\"1,750.70\",\"1,978.70\",780,\"21,650.00\",130,1.60,1.75,\"2,600\",-0.35,1.55,25.55,\"18,495\",\"1,724\",\"2,185\",\n,-,-,-,33.96,-,-,780,\"1,345.85\",\"1,868.60\",780,\"21,700.00\",\"1,300\",1.70,1.75,325,-0.20,1.80,25.34,\"52,850\",\"1,024\",\"15,187\",\n,1,-,1,-,\"1,700.00\",-280.00,65,\"1,646.50\",\"1,801.95\",780,\"21,750.00\",\"5,005\",1.60,1.90,\"5,655\",-0.10,1.90,24.85,\"16,918\",\"1,240\",\"1,984\",\n,1,-,-,-,-,-,65,\"1,586.85\",\"1,744.85\",780,\"21,800.00\",\"4,225\",1.70,1.85,\"2,015\",-0.25,1.85,24.11,\"72,691\",\"4,375\",\"20,349\",\n,1,-,-,-,-,-,65,\"1,320.05\",\"1,664.40\",780,\"21,850.00\",\"3,900\",1.85,2.00,\"3,250\",-0.25,1.85,23.46,\"23,889\",\"1,660\",\"2,408\",\n,8,-2,2,-,\"1,500.00\",100.00,260,\"1,552.90\",\"1,734.60\",\"1,690\",\"21,900.00\",\"1,690\",1.90,1.95,325,-0.30,1.90,22.87,\"76,644\",\"2,700\",\"12,606\",\n,2,-,1,34.40,\"1,560.00\",-240.00,65,\"1,504.15\",\"1,519.65\",130,\"21,950.00\",650,1.90,2.05,325,-0.30,2.05,22.43,\"38,708\",\"1,716\",\"4,186\",\n,\"10,662\",-747,\"1,180\",-,\"1,460.90\",67.05,65,\"1,458.50\",\"1,463.40\",65,\"22,000.00\",\"19,695\",2.10,2.20,\"1,105\",-0.30,2.20,21.96,\"3,19,842\",\"22,758\",\"1,12,821\",\n,1,-,-,32.08,-,-,65,\"1,348.00\",\"1,495.10\",780,\"22,050.00\",650,2.10,2.25,585,-0.30,2.10,21.16,\"43,926\",491,\"4,154\",\n,18,-,-,-,-,-,845,\"1,239.70\",\"1,444.25\",780,\"22,100.00\",325,2.20,2.30,910,-0.25,2.30,20.74,\"1,10,245\",\"2,503\",\"15,041\",\n,7,-,-,24.30,-,-,845,\"1,189.55\",\"1,393.35\",780,\"22,150.00\",195,2.35,2.55,\"4,030\",-0.35,2.40,20.17,\"35,261\",\"1,633\",\"3,494\",\n,81,-11,15,-,\"1,251.00\",57.75,130,\"1,252.95\",\"1,270.75\",65,\"22,200.00\",\"2,470\",2.40,2.60,715,-0.35,2.40,19.50,\"1,96,655\",\"11,852\",\"42,139\",\n,5,-,-,-,-,-,65,\"1,150.05\",\"1,290.90\",780,\"22,250.00\",\"13,195\",2.55,2.75,260,-0.45,2.55,18.97,\"61,916\",\"2,823\",\"8,864\",\n,22,-,21,-,\"1,147.00\",54.00,845,\"1,007.35\",\"1,239.60\",780,\"22,300.00\",\"2,665\",2.60,2.80,455,-0.50,2.80,18.52,\"1,83,284\",\"14,254\",\"38,840\",\n,1,-,-,-,-,-,65,\"1,004.85\",\"1,189.50\",780,\"22,350.00\",\"1,235\",2.75,3.00,\"1,430\",-0.75,2.95,17.96,\"63,056\",\"2,278\",\"7,211\",\n,11,-,-,-,-,-,65,959.35,\"1,138.55\",780,\"22,400.00\",\"1,235\",3.10,3.30,520,-0.65,3.35,17.58,\"2,16,903\",-773,\"35,205\",\n,8,2,5,-,\"1,016.05\",120.90,65,957.80,\"1,016.60\",130,\"22,450.00\",390,3.30,3.55,325,-0.95,3.60,17.06,\"1,32,484\",\"1,525\",\"8,504\",\n,\"8,086\",-538,\"2,817\",-,963.00,71.00,65,961.00,964.00,65,\"22,500.00\",\"2,145\",3.65,3.85,650,-1.30,3.90,16.54,\"4,85,929\",\"9,759\",\"1,23,014\",\n,13,4,49,-,902.85,64.95,65,821.55,971.55,\"1,690\",\"22,550.00\",845,3.80,4.20,\"3,380\",-1.60,4.10,15.93,\"1,55,473\",\"3,857\",\"15,263\",\n,114,1,21,-,865.10,80.15,65,856.90,867.15,65,\"22,600.00\",\"5,720\",4.10,4.35,910,-2.45,4.10,15.20,\"2,95,514\",\"15,204\",\"52,579\",\n,701,-2,27,-,795.55,43.50,65,781.05,884.05,780,\"22,650.00\",\"2,730\",4.65,4.90,\"7,475\",-2.45,4.90,14.89,\"1,53,528\",\"24,050\",\"32,482\",\n,450,125,426,-,761.85,61.55,130,760.75,766.10,65,\"22,700.00\",\"1,690\",5.05,5.20,910,-3.55,5.15,14.25,\"2,93,652\",\"8,552\",\"59,992\",\n,514,188,450,-,708.45,63.35,260,712.20,721.90,260,\"22,750.00\",\"2,340\",5.60,5.75,455,-4.40,5.65,13.71,\"1,95,766\",\"-1,374\",\"22,543\",\n,\"4,147\",174,\"2,259\",-,666.80,67.80,325,663.65,666.70,130,\"22,800.00\",\"2,080\",6.30,6.45,845,-5.70,6.45,13.25,\"3,84,058\",\"19,369\",\"98,520\",\n,344,223,456,-,611.80,57.10,130,611.30,620.95,130,\"22,850.00\",715,7.00,7.10,325,-7.40,7.00,12.65,\"2,20,100\",\"23,091\",\"37,100\",\n,\"2,289\",464,\"4,279\",-,565.90,58.80,260,565.90,569.00,130,\"22,900.00\",\"13,130\",8.10,8.20,65,-9.20,8.10,12.18,\"4,12,946\",\"30,889\",\"74,066\",\n,622,461,\"1,956\",-,520.15,58.55,\"1,690\",517.40,519.80,325,\"22,950.00\",\"1,105\",9.50,9.80,65,-11.05,9.85,11.83,\"2,68,880\",\"16,177\",\"30,127\",\n,\"20,552\",\"-1,004\",\"37,904\",-,472.00,55.30,325,469.80,472.00,780,\"23,000.00\",585,12.00,12.15,520,-13.90,12.15,11.51,\"8,90,889\",\"48,800\",\"1,95,203\",\n,\"1,249\",525,\"4,542\",-,421.15,51.15,130,420.60,426.05,130,\"23,050.00\",910,14.35,14.90,910,-16.85,14.90,11.16,\"3,21,822\",\"12,958\",\"26,912\",\n,\"8,809\",\"2,067\",\"45,145\",-,378.00,47.00,130,377.20,378.00,455,\"23,100.00\",260,18.10,18.30,195,-20.80,18.35,10.82,\"6,40,611\",\"16,065\",\"60,557\",\n,\"3,657\",\"1,065\",\"24,941\",-,334.35,46.75,325,331.70,334.70,130,\"23,150.00\",130,22.70,23.00,\"1,365\",-26.15,22.80,10.49,\"4,70,017\",\"10,552\",\"32,636\",\n,\"22,802\",\"-3,160\",\"1,99,374\",5.23,287.00,37.55,195,287.00,287.95,65,\"23,200.00\",130,28.95,29.35,130,-30.50,29.10,10.25,\"9,05,977\",\"32,357\",\"96,043\",\n,\"15,320\",234,\"1,58,538\",6.38,245.00,33.70,130,245.05,246.70,325,\"23,250.00\",195,37.00,37.45,585,-36.65,36.95,10.01,\"7,11,195\",\"34,978\",\"58,194\",\n,\"64,341\",\"-16,690\",\"9,13,640\",7.09,207.50,27.65,650,206.00,207.30,130,\"23,300.00\",325,47.65,48.25,130,-41.80,47.65,9.86,\"17,57,172\",\"35,851\",\"1,42,364\",\n,\"24,636\",\"-11,047\",\"11,73,569\",7.23,170.30,20.70,130,168.45,170.80,260,\"23,350.00\",455,61.20,61.80,845,-48.90,61.20,9.74,\"18,20,482\",\"32,289\",\"61,914\",\n,\"1,17,671\",\"6,551\",\"30,86,354\",7.36,137.20,15.55,260,136.25,137.20,585,\"23,400.00\",65,78.05,78.35,260,-53.85,77.70,9.64,\"35,67,548\",\"85,490\",\"1,79,514\",\n,\"59,629\",\"31,831\",\"21,99,764\",7.51,108.80,10.70,\"6,240\",108.00,108.80,650,\"23,450.00\",585,98.70,99.35,520,-57.95,99.40,9.70,\"17,77,930\",\"45,210\",\"58,008\",\n,\"1,60,945\",\"22,799\",\"26,95,454\",7.49,82.80,5.00,845,82.70,83.40,520,\"23,500.00\",390,123.65,124.20,455,-62.45,123.60,9.68,\"14,03,305\",\"29,580\",\"1,21,032\",\n,\"62,936\",\"39,195\",\"11,71,130\",7.52,61.75,0.95,780,61.65,62.20,715,\"23,550.00\",65,152.05,153.25,130,-68.20,151.40,9.68,\"2,84,859\",\"6,560\",\"10,787\",\n,\"1,07,642\",\"42,092\",\"14,91,153\",7.60,45.35,-0.60,\"3,835\",45.00,45.35,780,\"23,600.00\",260,185.05,185.80,195,-68.20,185.80,9.98,\"3,43,941\",\"7,550\",\"28,356\",\n,\"48,380\",\"19,074\",\"8,33,343\",7.68,32.55,-2.35,520,32.15,32.55,585,\"23,650.00\",325,222.00,223.85,130,-72.40,221.50,10.15,\"64,378\",\"1,253\",\"5,344\",\n,\"1,02,020\",\"21,855\",\"10,86,398\",7.81,23.30,-3.75,\"3,445\",23.00,23.45,195,\"23,700.00\",325,262.80,264.55,130,-70.80,263.60,10.72,\"80,639\",649,\"16,161\",\n,\"35,904\",\"8,929\",\"4,88,896\",7.87,16.00,-4.40,\"4,160\",16.00,16.55,715,\"23,750.00\",325,306.55,308.10,130,-66.55,309.75,11.58,\"13,845\",518,\"3,952\",\n,\"1,29,212\",\"31,305\",\"8,60,109\",8.15,11.90,-3.45,\"1,755\",11.60,11.90,910,\"23,800.00\",130,350.35,352.00,650,-71.60,350.80,11.74,\"35,177\",\"-2,362\",\"23,819\",\n,\"42,847\",\"20,310\",\"4,18,963\",8.38,8.65,-3.20,65,8.50,8.70,585,\"23,850.00\",130,396.10,399.20,325,-75.70,397.10,12.39,\"3,215\",174,\"2,060\",\n,\"1,10,702\",\"45,020\",\"5,73,728\",8.74,6.75,-2.50,\"6,890\",6.40,6.75,65,\"23,900.00\",325,445.70,449.25,130,-71.45,446.45,13.38,\"7,057\",-547,\"15,034\",\n,\"23,018\",\"3,678\",\"2,70,751\",9.08,5.25,-2.35,390,5.25,5.70,\"1,755\",\"23,950.00\",325,494.20,498.00,65,-68.25,498.00,14.65,954,38,\"2,158\",\n,\"2,40,135\",\"22,645\",\"7,43,158\",9.66,4.75,-1.75,\"1,300\",4.75,4.85,520,\"24,000.00\",130,542.70,546.00,650,-66.45,543.00,14.93,\"22,761\",\"-4,145\",\"84,190\",\n,\"59,196\",\"40,218\",\"3,94,789\",10.16,4.15,-1.20,390,4.00,4.30,\"1,170\",\"24,050.00\",130,588.35,597.40,65,-63.35,600.95,17.16,344,-112,\"1,263\",\n,\"65,717\",\"18,463\",\"4,04,699\",10.69,3.75,-0.80,\"3,640\",3.40,3.75,325,\"24,100.00\",130,641.30,645.00,65,-72.20,643.55,17.00,\"4,605\",\"-2,690\",\"8,279\",\n,\"18,421\",\"6,461\",\"1,66,978\",11.16,3.30,-0.65,390,2.95,3.30,390,\"24,150.00\",260,689.40,697.65,260,-53.40,693.10,17.89,218,-122,\"2,065\",\n,\"93,642\",\"5,681\",\"3,11,006\",11.55,2.80,-0.80,455,2.65,2.80,\"11,960\",\"24,200.00\",65,739.60,745.00,65,-67.65,743.40,18.90,\"3,524\",\"-2,116\",\"22,491\",\n,\"18,283\",\"5,549\",\"1,04,466\",12.08,2.60,-0.65,325,2.30,2.60,195,\"24,250.00\",195,790.00,794.50,65,-58.95,794.00,19.94,181,-31,\"2,235\",\n,\"86,665\",812,\"2,18,988\",12.43,2.20,-0.80,\"2,600\",2.05,2.20,\"1,040\",\"24,300.00\",65,840.00,846.65,130,-63.35,844.20,20.91,\"1,284\",-501,\"42,454\",\n,\"15,170\",\"2,873\",\"78,490\",12.98,2.10,-0.60,130,1.85,2.10,520,\"24,350.00\",\"1,755\",888.90,911.15,65,-60.85,909.00,24.39,53,-38,\"4,675\",\n,\"62,667\",\"4,559\",\"1,23,289\",13.22,1.70,-0.75,\"2,275\",1.65,1.75,975,\"24,400.00\",65,938.20,947.55,195,-68.90,942.35,22.39,\"2,258\",\"-1,366\",\"27,460\",\n,\"9,062\",\"4,779\",\"43,023\",13.73,1.60,-0.75,\"3,900\",1.55,1.75,\"2,080\",\"24,450.00\",65,985.25,996.70,130,-54.00,996.00,24.00,80,-7,\"1,180\",\n,\"1,36,924\",\"21,702\",\"2,92,279\",14.02,1.35,-0.85,\"10,270\",1.35,1.50,\"2,600\",\"24,500.00\",65,\"1,041.35\",\"1,042.00\",65,-59.35,\"1,041.35\",23.96,\"4,918\",\"-3,300\",\"38,446\",\n,\"11,853\",908,\"46,487\",14.40,1.20,-0.85,\"2,600\",1.20,1.25,195,\"24,550.00\",65,\"1,080.70\",\"1,109.65\",65,-38.15,\"1,110.00\",28.38,9,-7,710,\n,\"57,228\",\"18,362\",\"1,31,131\",14.82,1.10,-0.75,\"55,510\",1.10,1.15,\"9,815\",\"24,600.00\",65,\"1,132.45\",\"1,144.40\",65,-57.90,\"1,146.50\",26.79,600,-327,\"9,803\",\n,\"9,728\",\"3,376\",\"38,117\",15.31,1.05,-0.70,\"12,090\",1.05,1.10,\"2,795\",\"24,650.00\",650,\"1,182.60\",\"1,210.30\",65,-84.80,\"1,188.00\",25.79,8,-1,531,\n,\"58,886\",\"7,595\",\"1,47,256\",15.78,1.00,-0.50,\"11,960\",0.95,1.00,\"1,02,895\",\"24,700.00\",65,\"1,232.55\",\"1,250.00\",65,-67.00,\"1,242.60\",27.70,174,-122,\"3,278\",\n,\"6,194\",\"1,772\",\"21,129\",16.15,0.90,-0.55,\"8,645\",0.90,0.95,\"36,530\",\"24,750.00\",390,\"1,283.50\",\"1,309.80\",65,-64.90,\"1,280.65\",25.50,15,-9,389,\n,\"66,896\",-485,\"92,115\",16.59,0.85,-0.60,\"1,13,360\",0.85,0.90,\"1,84,925\",\"24,800.00\",65,\"1,332.20\",\"1,359.35\",65,-65.20,\"1,347.00\",30.38,418,-258,\"4,727\",\n,\"2,380\",503,\"8,309\",17.13,0.85,-0.50,325,0.90,0.95,\"1,820\",\"24,850.00\",845,\"1,370.15\",\"1,410.80\",65,-42.30,\"1,398.30\",31.52,18,-13,175,\n,\"37,344\",\"-7,084\",\"1,16,622\",17.56,0.80,-0.50,\"42,640\",0.80,0.85,\"1,16,025\",\"24,900.00\",130,\"1,431.25\",\"1,449.75\",65,-66.55,\"1,440.00\",30.44,21,-,\"1,134\",\n,\"1,842\",434,\"7,543\",18.32,0.90,-0.45,65,0.85,0.95,\"10,270\",\"24,950.00\",65,\"1,399.90\",\"1,510.65\",65,-,-,26.56,-,-,71,\n,\"1,82,070\",\"6,006\",\"2,11,199\",18.62,0.80,-0.60,\"2,27,175\",0.80,0.85,\"2,36,405\",\"25,000.00\",65,\"1,542.00\",\"1,544.90\",130,-63.25,\"1,544.45\",33.17,\"3,125\",\"-1,687\",\"26,408\",\n,\"1,523\",284,\"7,804\",19.15,0.80,-0.50,\"3,250\",0.80,0.90,\"2,600\",\"25,050.00\",\"1,690\",\"1,378.05\",\"1,614.85\",65,-147.00,\"1,583.00\",30.92,6,-4,53,\n,\"19,963\",\"4,581\",\"40,768\",19.55,0.75,-0.45,\"60,840\",0.75,0.80,\"73,255\",\"25,100.00\",780,\"1,466.05\",\"1,646.70\",65,-59.00,\"1,650.00\",36.12,105,-53,\"1,373\",\n,\"2,042\",934,\"7,710\",20.07,0.75,-0.50,\"3,315\",0.75,0.80,390,\"25,150.00\",65,\"1,650.90\",\"1,714.75\",65,-24.95,\"1,700.00\",36.95,5,-,21,\n,\"14,007\",\"2,533\",\"30,509\",20.44,0.70,-0.45,\"1,29,480\",0.70,0.75,\"1,01,335\",\"25,200.00\",780,\"1,718.05\",\"1,750.75\",65,-61.35,\"1,760.00\",39.97,58,-39,\"1,163\",\n,\"1,025\",180,\"2,731\",21.25,0.80,-0.40,65,0.75,0.85,195,\"25,250.00\",\"1,690\",\"1,573.45\",\"1,814.80\",65,-35.00,\"1,800.00\",38.60,8,-,26,\n,\"9,222\",235,\"11,151\",21.62,0.75,-0.35,325,0.75,0.85,\"3,250\",\"25,300.00\",65,\"1,829.15\",\"1,864.50\",845,-49.35,\"1,848.90\",39.16,14,-3,418,\n,510,189,\"2,521\",21.97,0.70,-0.45,\"4,615\",0.70,0.80,195,\"25,350.00\",780,\"1,725.80\",\"1,914.95\",65,-,-,6.15,-,-,16,\n,\"5,288\",805,\"9,184\",22.48,0.70,-0.45,\"5,850\",0.70,0.75,\"5,330\",\"25,400.00\",780,\"1,740.90\",\"1,964.75\",65,-30.80,\"1,950.00\",41.04,15,-2,329,\n,597,-39,\"1,704\",23.15,0.75,-0.35,\"3,510\",0.65,0.75,260,\"25,450.00\",780,\"1,873.65\",\"2,008.75\",65,-104.65,\"2,000.00\",41.85,8,-,3,\n,\"49,889\",106,\"45,843\",23.81,0.80,-0.35,\"47,060\",0.70,0.80,\"3,380\",\"25,500.00\",130,\"2,042.15\",\"2,047.00\",130,-72.85,\"2,044.15\",41.13,\"3,985\",\"-2,795\",\"18,161\",\n,\"1,655\",217,\"5,574\",23.99,0.70,-0.25,\"16,445\",0.70,0.85,\"2,730\",\"25,550.00\",780,\"1,915.55\",\"2,152.50\",65,-,-,35.29,-,-,6,\n,\"4,463\",\"2,232\",\"14,901\",24.31,0.65,-0.35,\"12,025\",0.65,0.70,\"17,420\",\"25,600.00\",780,\"1,915.85\",\"2,149.05\",195,-85.00,\"2,165.00\",47.73,10,-,448,\n,699,81,\"5,536\",24.80,0.65,-0.30,\"1,560\",0.65,0.75,\"3,965\",\"25,650.00\",780,\"2,040.05\",\"2,320.35\",65,\"1,183.15\",\"2,200.00\",45.02,8,-,1,\n,\"4,504\",-75,\"11,393\",25.29,0.65,-0.25,\"1,300\",0.65,0.70,\"29,705\",\"25,700.00\",\"3,380\",\"2,009.15\",\"2,266.10\",65,-64.95,\"2,250.00\",45.81,11,-10,173,\n,304,143,\"1,082\",25.78,0.65,-0.25,130,0.70,0.75,\"1,690\",\"25,750.00\",780,\"2,052.35\",\"2,349.95\",65,-160.00,\"2,270.00\",35.60,3,-1,4,\n,\"6,431\",-65,\"9,815\",26.07,0.60,-0.25,\"1,83,495\",0.60,0.65,\"11,635\",\"25,800.00\",\"1,690\",\"2,101.60\",\"2,344.95\",65,-105.00,\"2,345.00\",46.00,2,-2,323,\n,251,90,634,26.95,0.70,-0.15,\"21,060\",0.60,0.75,195,\"25,850.00\",780,\"2,082.40\",\"2,641.55\",780,-,-,-,-,-,-,\n,\"2,433\",-120,\"13,468\",27.24,0.65,-0.20,\"4,420\",0.65,0.70,\"48,815\",\"25,900.00\",\"1,690\",\"2,126.55\",\"2,466.10\",65,-,-,-,-,-,69,\n,328,199,\"2,199\",27.51,0.60,-0.20,130,0.65,0.75,130,\"25,950.00\",780,\"2,296.15\",-,-,-,-,13.83,-,-,1,\n,\"50,636\",\"-4,321\",\"39,634\",27.99,0.60,-0.15,\"2,28,735\",0.60,0.65,\"1,26,815\",\"26,000.00\",325,\"2,541.75\",\"2,547.70\",65,-69.35,\"2,542.15\",48.17,\"4,070\",\"-2,501\",\"25,683\",\n,203,54,475,28.68,0.65,-0.15,\"5,135\",0.60,0.75,130,\"26,050.00\",780,\"2,325.70\",\"2,663.00\",845,-,-,18.06,-,-,4,\n,399,211,\"1,366\",28.94,0.60,-0.15,\"11,050\",0.60,0.70,\"2,600\",\"26,100.00\",\"1,690\",\"2,317.15\",\"2,701.60\",65,-,-,-,-,-,144,\n,213,82,816,29.85,0.70,-0.05,\"5,265\",0.60,0.75,\"2,600\",\"26,150.00\",780,\"2,417.55\",\"2,980.80\",\"2,470\",-,-,19.21,-,-,1,\n,\"2,563\",426,\"2,763\",30.11,0.65,-0.10,\"5,200\",0.60,0.70,130,\"26,200.00\",65,\"2,721.00\",\"3,036.35\",65,-51.05,\"2,725.15\",44.53,5,-4,564,\n,332,152,980,30.80,0.70,-0.05,\"17,160\",0.55,0.80,\"5,200\",\"26,250.00\",780,\"2,458.30\",\"3,077.50\",780,-,-,-,-,-,-,\n,\"1,797\",-27,\"4,545\",30.82,0.60,-,\"4,355\",0.55,0.60,\"7,150\",\"26,300.00\",780,\"2,478.95\",\"2,862.35\",325,-66.75,\"2,862.75\",58.34,34,-33,\"1,105\",\n,64,41,417,31.29,0.60,-0.10,390,0.55,0.70,\"2,730\",\"26,350.00\",780,\"2,546.60\",\"2,969.45\",780,-,-,-,-,-,-,\n,342,36,\"1,376\",31.99,0.65,-,585,0.55,0.65,\"3,315\",\"26,400.00\",780,\"2,820.05\",\"3,068.75\",390,30.00,\"3,000.00\",68.00,2,-2,44,\n,206,164,724,32.22,0.60,-1.80,130,0.55,0.70,\"5,330\",\"26,450.00\",780,\"2,611.80\",\"3,196.20\",780,-,-,-,-,-,-,\n,\"12,940\",-419,\"19,855\",31.84,0.45,-0.10,\"2,37,770\",0.45,0.50,\"53,040\",\"26,500.00\",65,\"3,024.20\",\"3,047.00\",130,-52.20,\"3,046.15\",56.74,383,-354,\"12,338\",\n,140,60,571,33.14,0.60,-0.05,\"8,255\",0.50,0.60,260,\"26,550.00\",780,\"2,699.50\",\"3,402.20\",780,-,-,-,-,-,-,\n,553,-4,934,32.74,0.45,-0.30,\"6,825\",0.45,0.60,\"2,210\",\"26,600.00\",780,\"2,744.65\",\"3,461.65\",780,-,-,-,-,-,-,\n,141,120,\"1,291\",33.19,0.45,-0.15,\"15,535\",0.45,0.60,\"1,235\",\"26,650.00\",780,\"2,788.45\",\"3,510.70\",\"2,470\",-,-,-,-,-,-,\n,99,23,339,34.76,0.65,-0.05,\"18,720\",0.45,0.65,260,\"26,700.00\",780,\"2,857.05\",\"3,415.25\",780,-,-,-,-,-,-,\n,186,70,558,34.69,0.55,-0.05,\"7,930\",0.45,0.55,780,\"26,750.00\",780,\"2,999.40\",\"3,382.55\",845,-,-,18.46,-,-,1,\n,219,190,902,34.52,0.45,-0.20,130,0.50,0.70,\"2,990\",\"26,800.00\",780,\"2,920.30\",\"3,398.45\",845,-,-,-,-,-,21,\n,167,115,848,34.97,0.45,-0.05,130,0.50,0.70,\"5,200\",\"26,850.00\",780,\"2,965.00\",\"3,569.75\",780,-,-,-,-,-,-,\n,111,22,816,35.41,0.45,-0.20,\"19,305\",0.45,0.65,\"3,315\",\"26,900.00\",780,\"3,008.45\",\"3,524.50\",845,-,-,-,-,-,1,\n,206,163,\"1,435\",35.85,0.45,-,\"27,690\",0.45,0.50,\"1,040\",\"26,950.00\",780,\"3,076.65\",\"3,843.15\",780,-,-,-,-,-,-,\n,\"26,240\",859,\"16,248\",36.28,0.45,-0.15,\"22,230\",0.45,0.50,650,\"27,000.00\",130,\"3,532.60\",\"3,545.95\",65,-54.05,\"3,545.00\",63.47,\"1,214\",-657,\"21,509\",\n,223,55,\"1,239\",36.72,0.45,-,\"22,750\",0.45,0.50,780,\"27,050.00\",780,\"3,210.75\",\"3,947.25\",780,-,-,-,-,-,-,\n,638,442,\"2,012\",37.81,0.55,0.05,\"4,160\",0.50,0.55,\"5,200\",\"27,100.00\",780,\"3,210.30\",\"3,726.35\",780,-,-,-,-,-,-,\n,\"1,012\",883,\"3,187\",37.59,0.45,-,260,0.55,0.60,\"4,875\",\"27,150.00\",780,\"3,254.15\",\"3,883.15\",780,-,-,-,-,-,-,\n,\"2,620\",\"1,242\",\"5,228\",38.02,0.45,-0.20,\"47,320\",0.45,0.50,130,\"27,200.00\",780,\"3,297.05\",\"4,132.00\",\"1,690\",-,-,-,-,-,-,\n,\"7,426\",-289,\"3,383\",47.31,0.30,-0.05,\"2,340\",0.30,0.35,\"56,550\",\"28,500.00\",65,\"5,026.10\",\"5,047.85\",65,-55.95,\"5,050.00\",85.35,432,-282,\"5,630\",\n,\"4,304\",63,\"1,331\",58.66,0.30,-0.15,\"6,240\",0.30,0.35,\"9,100\",\"30,000.00\",65,\"6,543.10\",\"6,552.40\",65,-67.60,\"6,557.65\",106.95,143,1,\"2,044\",\n,254,11,35,70.08,0.35,-0.05,\"3,185\",0.35,0.45,325,\"31,500.00\",\"1,690\",\"7,563.10\",\"8,648.55\",\"1,690\",-,-,-,-,-,-,\n,652,119,413,79.27,0.30,-0.10,\"12,870\",0.30,0.40,\"4,355\",\"33,000.00\",-,-,\"10,199.80\",\"1,690\",-,-,-,-,-,-,\n,172,21,185,88.70,0.30,-,\"5,265\",0.25,0.30,\"2,665\",\"34,500.00\",\"1,690\",\"10,411.30\",-,-,-,-,-,-,-,-,\n";
+const IND=['NIFTY','BANKNIFTY','FINNIFTY','MIDCPNIFTY','NIFTYNXT50','SENSEX','BANKEX'];
+const S={chains:[],plans:[],history:[]}; const $=x=>document.getElementById(x);
+const n=v=>{if(v==null)return NaN;let s=String(v).trim().replace(/₹|,/g,'');if(!s||['-','—','NA','N/A'].includes(s))return NaN;let z=parseFloat(s.replace(/[^0-9.+-eE]/g,''));return Number.isFinite(z)?z:NaN};
+function split(l){
+  l=String(l??'');
+  if(l.includes('\t') && !l.includes(',')) return l.split('\t').map(x=>x.trim());
+  if(!l.includes(',')) return l.trim().split(/\s{2,}/).map(x=>x.trim());
+  const a=[]; let cur='', quoted=false;
+  for(let i=0;i<l.length;i++){
+    const ch=l[i];
+    if(ch==='\"'){
+      if(quoted && l[i+1]==='\"'){cur+='\"';i++;continue;}
+      quoted=!quoted; continue;
+    }
+    if(ch===',' && !quoted){a.push(cur.trim());cur='';} else cur+=ch;
+  }
+  a.push(cur.trim()); return a;
+}
+const idxGuess=x=>{let u=String(x).toUpperCase();return IND.find(i=>u.includes(i))||'NIFTY'};
+function parse(txt,index,name){
+ txt=String(txt??'').replace(/^\ufeff/,'').replace(/\r/g,''); let lines=txt.split('\n').filter(x=>x.trim()!=='');
+ if(!lines.length)throw Error('Empty file');
+ let hi=lines.findIndex(x=>x.toUpperCase().includes('STRIKE')&&x.toUpperCase().includes('OI'));
+ if(hi<0)throw Error('NSE header row not found: STRIKE/OI missing');
+ let h=split(lines[hi]).map(x=>x.trim());
+ let si=h.findIndex(x=>x.toUpperCase()==='STRIKE'||x.toUpperCase().includes('STRIKE'));
+ // Exact NSE grouped CSV: 23 columns, STRIKE is column 12 (0-based index 11).
+ if(si<0 && h.length>=23)si=11;
+ let grouped=(si===11&&h.length>=23)||(si===10&&h.length>=21);
+ const out=[];
+ for(let i=hi+1;i<lines.length;i++){
+   let c=split(lines[i]).map(x=>x.trim());
+   if(grouped && c.length!==23){
+     // Be tolerant of trailing empty columns or pasted rows with accidental whitespace.
+     while(c.length>23 && c[c.length-1]==='')c.pop();
+   }
+   if(c.length<si+1)continue;
+   let strike=n(c[si]); if(!Number.isFinite(strike))continue;
+   let safeIndex=(index&&IND.includes(index))?index:idxGuess(name); let r={index:safeIndex,expiry:name,strike};
+   if(grouped && si===11){
+     r.ceoi=n(c[1]);r.ceoiChg=n(c[2]);r.cevol=n(c[3]);r.ceiv=n(c[4]);r.celtp=n(c[5]);r.ceChg=n(c[6]);r.cebid=n(c[8]);r.ceask=n(c[9]);
+     r.pebid=n(c[13]);r.peask=n(c[14]);r.peChg=n(c[16]);r.peltp=n(c[17]);r.peiv=n(c[18]);r.pevol=n(c[19]);r.peoiChg=n(c[20]);r.peoi=n(c[21]);
+   }else if(grouped && si===10){
+     r.ceoiChg=n(c[0]);r.ceoi=n(c[1]);r.cevol=n(c[2]);r.ceiv=n(c[3]);r.celtp=n(c[4]);r.ceChg=n(c[5]);r.cebid=n(c[7]);r.ceask=n(c[8]);
+     r.pebid=n(c[12]);r.peask=n(c[13]);r.peChg=n(c[15]);r.peltp=n(c[16]);r.peiv=n(c[17]);r.pevol=n(c[18]);r.peoi=n(c[19]);r.peoiChg=n(c[20]);
+   }else{
+     const C=x=>h.findIndex(y=>y.toLowerCase().replace(/[\s_-]/g,'').includes(x));
+     const ceoi=C('ceoi'),ceoc=C('cechnginoi'),cev=C('cevolume'),cel=C('celtp'),cepc=C('cechng'),peoi=C('peoi'),peoc=C('pechnginoi'),pev=C('pevolume'),pel=C('peltp'),pepc=C('pechng');
+     r.ceoi=n(c[ceoi]);r.ceoiChg=n(c[ceoc]);r.cevol=n(c[cev]);r.celtp=n(c[cel]);r.ceChg=n(c[cepc]);r.peoi=n(c[peoi]);r.peoiChg=n(c[peoc]);r.pevol=n(c[pev]);r.peltp=n(c[pel]);r.peChg=n(c[pepc]);
+   }
+   out.push(r);
+ }
+ if(!out.length)throw Error('No parseable strike rows');
+ let strikes=out.map(x=>x.strike).sort((a,b)=>a-b), step=medianDiff(strikes);
+ // Spot: first try filename/headers, then robust put-call parity around liquid strikes.
+ let parity=out.map(r=>r.celtp+r.strike-r.peltp).filter(Number.isFinite);
+ let liquid=out.filter(r=>Number.isFinite(r.celtp)&&Number.isFinite(r.peltp)&&(r.cevol||0)+(r.pevol||0)>100000)
+                .map(r=>r.celtp+r.strike-r.peltp).filter(Number.isFinite);
+ let spot=liquid.length?median(liquid):(parity.length?median(parity):strikes[Math.floor(strikes.length/2)]);
+ let exp=(name.match(/(\d{1,2})[-_ ]([A-Za-z]{3})[-_ ](20\d{2})/i)||[]).slice(1).join('-');
+ if(!exp)exp=(name.match(/(\d{1,2})[-_ ](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[-_ ](20\d{2})/i)||[]).slice(1).join('-');
+ return {id:crypto.randomUUID(),index,name,rows:out,step,spot,expiryText:exp||name};
+}
+function median(a){a=a.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return NaN;let m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+function medianDiff(a){let d=[];for(let i=1;i<a.length;i++){let x=a[i]-a[i-1];if(x>0)d.push(x)}return median(d)||50}
+function pctile(arr,x){arr=arr.filter(Number.isFinite).sort((a,b)=>a-b);if(!arr.length||!Number.isFinite(x))return 0;let k=arr.findIndex(v=>v>=x);return Math.round(100*(k<0?1:k/Math.max(1,arr.length-1)))}
+function daysTo(expText){
+ let m=expText.match(/(\d{1,2})[-_ ]([A-Za-z]{3})[-_ ](20\d{2})/);if(!m)return NaN;
+ let d=new Date(`${m[1]} ${m[2]} ${m[3]} 15:30:00`); if(isNaN(d))return NaN;
+ return Math.max(0,Math.ceil((d-new Date())/86400000));
+}
+
+function classifyFlow(priceDelta,oiDelta){
+ if(!Number.isFinite(priceDelta)||!Number.isFinite(oiDelta))return null;
+ if(Math.abs(priceDelta)<1e-9||Math.abs(oiDelta)<1e-9)return null;
+ if(priceDelta>0&&oiDelta>0)return 'LB';
+ if(priceDelta>0&&oiDelta<0)return 'SC';
+ if(priceDelta<0&&oiDelta>0)return 'SB';
+ if(priceDelta<0&&oiDelta<0)return 'LU';
+ return null;
+}
+function signal(oc,pc){return classifyFlow(pc,oc)}
+function dir(side,sg){
+ if(side==='CE') return (sg==='LB'||sg==='SC')?'Bullish':'Bearish';
+ return (sg==='LB'||sg==='LU')?'Bearish':'Bullish';
+}
+function flowUnderlyingBias(side,sg){return dir(side,sg)==='Bullish'?1:-1}
+function emaSeries(vals,len){
+ const a=vals.filter(Number.isFinite);if(!a.length)return [];
+ const k=2/(len+1),out=[];let e=a[0];out.push(e);
+ for(let i=1;i<a.length;i++){e=a[i]*k+e*(1-k);out.push(e)}return out;
+}
+function smaSeries(vals,len){
+ const out=[];for(let i=0;i<vals.length;i++){if(i+1<len){out.push(NaN);continue}let s=0;for(let j=i-len+1;j<=i;j++)s+=vals[j];out.push(s/len)}return out;
+}
+function waveTrend(vals,n1=10,n2=21){
+ if(vals.length<n2+4)return null;
+ const esa=emaSeries(vals,n1),dev=emaSeries(vals.map((v,i)=>Math.abs(v-esa[i])),n1);
+ const ci=vals.map((v,i)=>dev[i]>0?(v-esa[i])/(0.015*dev[i]):0),wt1=emaSeries(ci,n2),wt2=smaSeries(wt1,4);
+ if(wt1.length<2||!Number.isFinite(wt2.at(-1)))return null;
+ const a=wt1.at(-1),b=wt2.at(-1),pa=wt1.at(-2),pb=wt2.at(-2);
+ return {wt1:a,wt2:b,crossUp:pa<=pb&&a>b,crossDown:pa>=pb&&a<b,ob:a>=60||b>=53,os:a<=-60||b<=-53};
+}
+function parseSeriesDate(name){
+ const s=String(name||'');let d=null,m;
+ if((m=s.match(/(20\d{2})[-_](\d{2})[-_](\d{2})/)))d=`${m[1]}-${m[2]}-${m[3]}`;
+ else if((m=s.match(/(\d{2})(\d{2})(20\d{2})/)))d=`${m[3]}-${m[2]}-${m[1]}`;
+ else if((m=s.match(/(\d{2})[-_](\d{2})[-_](20\d{2})/)))d=`${m[3]}-${m[2]}-${m[1]}`;
+ else if((m=s.match(/(\d{1,2})[-_ ]([A-Za-z]{3})[-_ ](20\d{2})/)))d=`${m[3]}-${m[2]}-${m[1].padStart(2,'0')}`;
+ if(!d)return null;
+ let t=null;
+ if((m=s.match(/(?:^|[_ -])(\d{2})(\d{2})(\d{2})(?:\.csv)?$/i)))t=`${m[1]}:${m[2]}:${m[3]}`;
+ else if((m=s.match(/(?:^|[_ -])(\d{2}):(\d{2})(?::(\d{2}))?/)))t=`${m[1]}:${m[2]}:${m[3]||'00'}`;
+ else if((m=s.match(/(?:^|[_ -])(\d{1,2})(\d{2})(?:\s*(AM|PM))?/i))){let hh=Number(m[1]),mm=Number(m[2]);const ap=(m[3]||'').toUpperCase();if(ap==='PM'&&hh<12)hh+=12;if(ap==='AM'&&hh===12)hh=0;t=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00`;}
+ return t?new Date(`${d}T${t}+05:30`):new Date(`${d}T00:00:00+05:30`);
+}
+function snapshotKey(ch){const dt=parseSeriesDate(ch.name);return dt&&!isNaN(dt)?dt.toISOString():String(ch.name||'')}
+function snapshotTime(ch){const dt=parseSeriesDate(ch.name);return dt&&!isNaN(dt)?dt:null}
+function seriesId(ch){const exp=String(ch.expiryText||'Unknown'),name=String(ch.name||'');return `${ch.index}|${(exp===name?'UNKNOWN':exp).toUpperCase().replace(/\s+/g,'')}`}
+function previousSnapshot(ch){
+ const t=snapshotTime(ch);if(!t)return null;
+ const arr=S.history.filter(x=>x!==ch&&seriesId(x)===seriesId(ch)).map(x=>({x,t:snapshotTime(x)})).filter(z=>z.t&&z.t<t).sort((a,b)=>b.t-a.t);
+ return arr[0]?.x||null;
+}
+function snapshotFlow(ch,r,side){
+ const prev=previousSnapshot(ch);
+ if(prev){
+  const pr=prev.rows.find(x=>Math.abs(x.strike-r.strike)<Math.max(.01,ch.step/3));
+  if(pr){
+   const pNow=side==='CE'?r.celtp:r.peltp,pPrev=side==='CE'?pr.celtp:pr.peltp;
+   const oiNow=side==='CE'?r.ceoi:r.peoi,oiPrev=side==='CE'?pr.ceoi:pr.peoi;
+   const pDelta=Number.isFinite(pNow)&&Number.isFinite(pPrev)?pNow-pPrev:NaN,oiDelta=Number.isFinite(oiNow)&&Number.isFinite(oiPrev)?oiNow-oiPrev:NaN;
+   const cls=classifyFlow(pDelta,oiDelta);if(cls)return {cls,pDelta,oiDelta,source:'SNAPSHOT',prev};
+  }
+ }
+ const pDelta=side==='CE'?r.ceChg:r.peChg,oiDelta=side==='CE'?r.ceoiChg:r.peoiChg;
+ return {cls:classifyFlow(pDelta,oiDelta),pDelta,oiDelta,source:'DAILY',prev:null};
+}
+function trendContext(ch,tfKey){
+ const all=S.history.filter(x=>seriesId(x)===seriesId(ch)&&snapshotTime(x)).sort((a,b)=>snapshotTime(a)-snapshotTime(b));
+ if(all.length<3)return {status:'INSUFFICIENT',bias:0,ema8:NaN,ema13:NaN,wt1:NaN,wt2:NaN,cross:''};
+ const mins=tfMinutes(tfKey),first=snapshotTime(all[0]).getTime(),buckets=new Map();
+ for(const x of all){const k=Math.floor((snapshotTime(x).getTime()-first)/(mins*60000));buckets.set(k,x.spot)}
+ const vals=[...buckets.entries()].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).filter(Number.isFinite);
+ if(vals.length<13)return {status:`NEED ${13-vals.length} MORE BARS`,bias:0,ema8:NaN,ema13:NaN,wt1:NaN,wt2:NaN,cross:''};
+ const e8=emaSeries(vals,8),e13=emaSeries(vals,13),wt=waveTrend(vals,10,21),eb=e8.at(-1)>e13.at(-1)?1:e8.at(-1)<e13.at(-1)?-1:0,wb=wt?(wt.wt1>wt.wt2?1:wt.wt1<wt.wt2?-1:0):0;
+ const bias=eb!==0&&wb===eb?eb:0;
+ return {status:bias>0?'BULLISH':bias<0?'BEARISH':'MIXED',bias,ema8:e8.at(-1),ema13:e13.at(-1),wt1:wt?.wt1,wt2:wt?.wt2,cross:wt?.crossUp?'CROSS UP':wt?.crossDown?'CROSS DOWN':''};
+}
+function oiWalls(rows,spot){
+ const step=medianDiff(rows.map(r=>r.strike).sort((a,b)=>a-b)),span=step*8;
+ const ceAbove=rows.filter(r=>r.strike>spot&&r.strike<=spot+span&&Number.isFinite(r.ceoi)).sort((a,b)=>b.ceoi-a.ceoi);
+ const peBelow=rows.filter(r=>r.strike<spot&&r.strike>=spot-span&&Number.isFinite(r.peoi)).sort((a,b)=>b.peoi-a.peoi);
+ const ceBelow=rows.filter(r=>r.strike<spot&&r.strike>=spot-span&&Number.isFinite(r.ceoi)).sort((a,b)=>b.ceoi-a.ceoi);
+ const peAbove=rows.filter(r=>r.strike>spot&&r.strike<=spot+span&&Number.isFinite(r.peoi)).sort((a,b)=>b.peoi-a.peoi);
+ return {step,resistance:ceAbove[0]?.strike??spot+step,support:peBelow[0]?.strike??spot-step,ceBelow:ceBelow[0]?.strike??spot-step,peAbove:peAbove[0]?.strike??spot+step};
+}
+function deltaProxy(r,side,rows,step){
+ const lo=rows.find(x=>Math.abs(x.strike-(r.strike-step))<step/3),hi=rows.find(x=>Math.abs(x.strike-(r.strike+step))<step/3);
+ if(!lo||!hi)return .5;const a=side==='CE'?[lo.celtp,hi.celtp]:[lo.peltp,hi.peltp];
+ if(!a.every(Number.isFinite))return .5;return Math.max(.05,Math.min(.95,Math.abs(a[0]-a[1])/(2*step)));
+}
+function walls(rows,spot,side){const w=oiWalls(rows,spot);return {nextAbove:side==='CE'?w.resistance:w.peAbove,nextBelow:side==='CE'?w.ceBelow:w.support,step:w.step}}
+const TF_CFG={
+ '1m':{label:'1 min',mins:1},'2m':{label:'2 mins',mins:2},'3m':{label:'3 mins',mins:3},'5m':{label:'5 mins',mins:5},'10m':{label:'10 mins',mins:10},'15m':{label:'15 mins',mins:15},'30m':{label:'30 mins',mins:30},'1h':{label:'1 hour',mins:60},'2h':{label:'2 hours',mins:120},'4h':{label:'4 hours',mins:240},'1d':{label:'1 day',mins:375}
+};
+function tfLabel(k){return TF_CFG[k]?.label||k}
+function tfMinutes(k){return TF_CFG[k]?.mins||15}
+function horizonSnapshots(hs,i,tf){
+ const minutes=tfMinutes(tf), interval=Math.max(1,Number($('dataStep').value)||15), n=Math.max(1,Math.ceil(minutes/interval));
+ return {n,minutes};
+}
+
+function candidateScore(ch,r,side,desired){
+ const sf=snapshotFlow(ch,r,side),dailyCls=classifyFlow(side==='CE'?r.ceChg:r.peChg,side==='CE'?r.ceoiChg:r.peoiChg),tc=trendContext(ch,$('tf')?.value||'15m'),spot=Number($('spotOverride').value)||ch.spot,step=ch.step;
+ const conflict=sf.source==='SNAPSHOT'&&dailyCls&&sf.cls&&dailyCls!==sf.cls;
+ let evidence=0,total=0;
+ const favorable=side==='CE'?(sf.cls==='LB'||sf.cls==='SC'):sf.cls==='LB';
+ if(sf.cls){total+=35;evidence+=favorable?35:0}
+ const ownMove=side==='CE'?r.ceChg:r.peChg,sign=desired==='Bullish'?1:-1;
+ if(Number.isFinite(ownMove)){total+=15;evidence+=(ownMove*sign>0?15:0)}
+ if(conflict){total+=15;evidence+=0}
+ if(tc.status!=='INSUFFICIENT'&&tc.status.indexOf('NEED')!==0){total+=20;evidence+=tc.bias===sign?20:0}
+ const w=oiWalls(ch.rows,spot),wall=desired==='Bullish'?w.support:w.resistance;
+ if(Number.isFinite(wall)){total+=15;evidence+=10+Math.max(0,5-Math.abs(r.strike-wall)/step)}
+ const bid=side==='CE'?r.cebid:r.pebid,ask=side==='CE'?r.ceask:r.peask,ltp=side==='CE'?r.celtp:r.peltp;
+ if(Number.isFinite(bid)&&Number.isFinite(ask)&&ltp>0){total+=15;const spread=(ask-bid)/ltp*100;evidence+=Math.max(0,15-Math.min(15,spread*3))}
+ return {score:total?Math.round(evidence/total*100):0,sf,dailyCls,conflict,tc,w};
+}
+function makePlan(ch,r,side,desired,scoreObj){
+ const spot=Number($('spotOverride').value)||ch.spot,step=ch.step,ltp=side==='CE'?r.celtp:r.peltp,bid=side==='CE'?r.cebid:r.pebid,ask=side==='CE'?r.ceask:r.peask;
+ const entry=Number.isFinite(ask)&&ask>0?ask:(Number.isFinite(ltp)&&ltp>0?ltp:(Number.isFinite(bid)&&bid>0?bid:NaN));if(!Number.isFinite(entry)||entry<=0)return null;
+ const bull=desired==='Bullish',w=oiWalls(ch.rows,spot),targetU=bull?w.resistance:w.support,invU=bull?w.support:w.resistance,delta=deltaProxy(r,side,ch.rows,step),signedDelta=side==='CE'?delta:-delta;
+ const premTarget=entry+signedDelta*(targetU-spot),premInv=entry+signedDelta*(invU-spot),slPct=Number($('slPct').value)||8,rr=Number($('rr').value)||2,minPts=Number($('minTargetPts').value)||10,maxPts=Number($('maxTargetPts').value)||30,pctSL=entry*(1-slPct/100);
+ let sl=pctSL;sl=Math.max(.05,Math.min(entry-.01,sl));
+ const risk=Math.max(.01,entry-sl),rrTarget=entry+risk*rr;let target1=Math.max(entry+minPts,rrTarget);if(Number.isFinite(premTarget)&&premTarget>entry)target1=Math.max(target1,Math.min(premTarget,entry+maxPts));target1=Math.min(entry+maxPts,target1);
+ const target2=Math.max(entry+.02,entry+risk*3);
+ return {...scoreObj,ch,r,side,sg:scoreObj.sf.cls,dir:desired,entry,ltp,bid,ask,delta,spot,atm:ch.rows.reduce((a,b)=>Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a).strike,wall:targetU,targetU,invU,premTarget,premInv,sl,target1,target2,qty:0,dte:daysTo(ch.expiryText),tf:$('tf')?.value||'15m',timeStop:tfLabel($('tf')?.value||'15m')};
+}
+function plansFor(ch){
+ const spot=Number($('spotOverride').value)||ch.spot,step=ch.step,atm=ch.rows.reduce((a,b)=>Math.abs(b.strike-spot)<Math.abs(a.strike-spot)?b:a).strike,min=Number($('minScore').value)||70,win=Number($('window').value)||6,mode=$('entryMode')?.value||'auto',manual=Number($('manualStrike')?.value),trend=trendContext(ch,$('tf')?.value||'15m'),candidates=[];
+ const allowedStrike=r=>mode==='atm'?r.strike===atm:mode==='manual'&&Number.isFinite(manual)?r.strike===ch.rows.reduce((a,b)=>Math.abs(b.strike-manual)<Math.abs(a.strike-manual)?b:a).strike:Math.abs(r.strike-atm)/Math.max(step,1)<=win;
+ for(const r of ch.rows){if(!allowedStrike(r))continue;for(const side of ['CE','PE']){
+   const desired=side==='CE'?'Bullish':'Bearish',sf=snapshotFlow(ch,r,side),favorable=side==='CE'?(sf.cls==='LB'||sf.cls==='SC'):sf.cls==='LB';
+   if(!favorable)continue;const sc=candidateScore(ch,r,side,desired);if(sc.conflict)continue;if(sc.score<min)continue;
+   if(trend.status!=='INSUFFICIENT'&&trend.status.indexOf('NEED')!==0&&trend.status!=='MIXED'&&trend.bias!==(desired==='Bullish'?1:-1))continue;
+   const p=makePlan(ch,r,side,desired,sc);if(p)candidates.push(p);
+ }}
+ return candidates.sort((a,b)=>b.score-a.score||Math.abs(a.r.strike-atm)-Math.abs(b.r.strike-atm));
+}
+function spikePrice(r,side){return side==='CE'?r.celtp:r.peltp}
+function spikeOI(r,side){return side==='CE'?r.ceoiChg:r.peoiChg}
+function spikeVol(r,side){return side==='CE'?r.cevol:r.pevol}
+function spikeRow(ch,strike,side){return ch.rows.find(r=>Math.abs(r.strike-strike)<Math.max(.01,ch.step/3))}
+function spikeMove(cur,prev,side){let a=spikePrice(cur,side),b=spikePrice(prev,side);return Number.isFinite(a)&&Number.isFinite(b)&&b>0?(a-b)/b*100:NaN}
+function spikeVolBurst(cur,prev,side){let v=spikeVol(cur,side), pv=spikeVol(prev,side);if(!Number.isFinite(v)||!Number.isFinite(pv)||pv<=0)return NaN;return v/pv}
+function spikeEvent(cur,prev,side){
+ const move=spikeMove(cur,prev,side), vol=spikeVolBurst(cur,prev,side), r=cur.r, p=prev.r;
+ if(!Number.isFinite(move)||!Number.isFinite(vol))return null;
+ const threshold=Number($('spikePct')?.value)||8, volMin=Number($('spikeVol')?.value)||2;
+ const oi=spikeOI(r,side), poi=spikeOI(p,side);
+ const oiConfirm=Number.isFinite(oi)?oi>0:null;
+ const fast=move>=threshold, burst=vol>=volMin;
+ if(!fast && !(move>=threshold*.6 && burst))return null;
+ let stage=(fast&&burst&&oiConfirm)?'CONFIRMED':(fast||burst?'EARLY':'')
+ let sg=oiConfirm===true?'LB':oiConfirm===false?'SC':null;
+ let direction=side==='CE'?'Bullish':(sg==='SC'?'Bullish':'Bearish');
+ if(!sg) direction=side==='CE'?'Bullish':'Bearish';
+ let score=Math.min(100, Math.round(45+Math.min(25,Math.max(0,move)/threshold*20)+Math.min(20,Math.max(0,vol-1)*8)+(oiConfirm===true?10:0)));
+ let entry=spikePrice(r,side); if(!Number.isFinite(entry)||entry<=0)return null;
+ let sl=direction==='Bullish'?entry*(1-(Number($('slPct').value)||20)/100):entry*(1+(Number($('slPct').value)||20)/100);
+ let risk=Math.abs(entry-sl), rr=Number($('rr').value)||2, target=direction==='Bullish'?entry+risk*rr:entry-risk*rr;
+ return {time:snapshotTime(cur),index:cur.index,expiry:cur.expiryText,strike:r.strike,side,stage,move,vol,oi,sg,direction,score,entry,sl,target};
+}
+function detectSpikes(){
+ const out=[], hs=[...S.history].sort((a,b)=>(snapshotTime(a)?.getTime()||0)-(snapshotTime(b)?.getTime()||0));
+ const look=Math.max(1,Number($('spikeLook')?.value)||1);
+ for(let i=look;i<hs.length;i++){
+  const cur=hs[i], prev=hs[i-look];
+  for(const r of cur.rows){
+   const pr=spikeRow(prev,r.strike,'CE'); if(pr){for(const side of ['CE','PE']){const x=spikeEvent({ ...cur, r },{ ...prev, r:spikeRow(prev,r.strike,side)},side);if(x)out.push(x)}}
+  }
+ }
+ return out.sort((a,b)=>(b.time?.getTime()||0)-(a.time?.getTime()||0)||b.score-a.score);
+}
+function renderSpikes(){
+ const tb=$('spikeTable')?.querySelector('tbody'), sum=$('spikeSummary'); if(!tb||!sum)return; tb.innerHTML='';
+ const ev=detectSpikes(); const conf=ev.filter(x=>x.stage==='CONFIRMED').length, early=ev.filter(x=>x.stage==='EARLY').length;
+ sum.innerHTML=`<div class="card"><b>${ev.length}</b><br><small>Spike events</small></div><div class="card"><b class="spike-confirm">${conf}</b><br><small>Confirmed</small></div><div class="card"><b class="spike-early">${early}</b><br><small>Early alerts</small></div><div class="card"><b>${ev.length?Math.max(...ev.map(x=>x.move)).toFixed(1)+'%':'—'}</b><br><small>Max premium jump</small></div>`;
+ if(!ev.length){tb.innerHTML='<tr><td colspan="14" class="small">No spike detected yet. Upload at least two timestamped option-chain snapshots for the same index/expiry.</td></tr>';return;}
+ for(const x of ev.slice(0,200)){let tr=document.createElement('tr');tr.innerHTML=`<td>${x.time?x.time.toLocaleString('en-IN',{hour12:false}):'—'}</td><td>${x.index}</td><td>${x.expiry}</td><td>${x.strike}</td><td><b>${x.side}</b></td><td class="${x.stage==='CONFIRMED'?'spike-confirm':'spike-early'}">${x.stage}</td><td>₹${x.entry.toFixed(2)}</td><td class="${x.move>=0?'green':'red'}">${x.move>=0?'+':''}${x.move.toFixed(1)}%</td><td>${fmt(x.oi)}</td><td>${x.vol.toFixed(2)}×</td><td>${x.sg==='LB'?'Long Buildup':x.sg==='SC'?'Short Covering':x.direction}</td><td>₹${x.entry.toFixed(2)}</td><td>₹${x.sl.toFixed(2)}</td><td>₹${x.target.toFixed(2)}</td>`;tb.appendChild(tr)}
+}
+
+function atmDualPlan(ch,strike,side){
+ const r=ch.rows.find(x=>Math.abs(x.strike-strike)<Math.max(.01,ch.step/3));if(!r)return null;
+ const desired=side==='CE'?'Bullish':'Bearish',sc=candidateScore(ch,r,side,desired),favorable=side==='CE'?(sc.sf.cls==='LB'||sc.sf.cls==='SC'):sc.sf.cls==='LB',p=makePlan(ch,r,side,desired,sc);if(!p)return null;
+ p.allowed=favorable&&!sc.conflict&&p.score>=(Number($('minScore').value)||70)&&(sc.tc.status==='INSUFFICIENT'||sc.tc.status.indexOf('NEED')===0||sc.tc.status==='MIXED'||sc.tc.bias===(desired==='Bullish'?1:-1));return p;
+}
+function renderAtmDual(){
+ const box=$('atmDualPlans');if(!box)return;box.innerHTML='';const c=S.chains[0];if(!c){box.innerHTML='<div class="card small">Upload/load an NSE option-chain file first.</div>';return;}
+ const detected=c.rows.reduce((a,b)=>Math.abs(b.strike-c.spot)<Math.abs(a.strike-c.spot)?b:a).strike,requested=Number($('atmPlanStrike')?.value);
+ const strike=Number.isFinite(requested)&&requested>0?(c.rows.find(r=>Math.abs(r.strike-requested)<.01)?.strike??c.rows.reduce((a,b)=>Math.abs(b.strike-requested)<Math.abs(a.strike-requested)?b:a).strike):detected;
+ for(const side of ['CE','PE']){const x=atmDualPlan(c,strike,side);if(!x)continue;const status=x.allowed?'TRADE-ELIGIBLE':'BLOCKED / WAIT';
+ box.insertAdjacentHTML('beforeend',`<div class="card"><div class="atm-plan-head"><div><span class="atm-badge">${strike} ${side}</span> <span class="atm-badge">${x.dir}</span> <span class="atm-badge">${status}</span></div><span class="atm-plan-price">₹${x.entry.toFixed(2)}</span></div><div class="small" style="margin-top:4px">${x.sg||'NO FLOW'} • ${x.sf.source} • ΔOI ${fmt(x.sf.oiDelta)} • premium Δ ${fmt(x.sf.pDelta)} • score ${x.score}</div><div class="atm-plan-grid"><div class="atm-kv"><small>ENTRY</small><b>₹${x.entry.toFixed(2)}</b></div><div class="atm-kv"><small>STOP LOSS</small><b>₹${x.sl.toFixed(2)}</b></div><div class="atm-kv"><small>TARGET 1</small><b>₹${x.target1.toFixed(2)}</b></div><div class="atm-kv"><small>TARGET 2</small><b>₹${x.target2.toFixed(2)}</b></div></div><div class="small" style="margin-top:8px">Underlying target ${x.targetU.toFixed(0)} • invalidation ${x.invU.toFixed(0)} • time exit ${x.timeStop}. Exit on T1/T2, SL, invalidation, trend/flow reversal, or time-stop.</div></div>`)}
+}
+let liveTimer=null, liveBusy=false, liveLast=null;
+const NSE_API={NIFTY:'NIFTY',BANKNIFTY:'BANKNIFTY',FINNIFTY:'FINNIFTY',MIDCPNIFTY:'MIDCPNIFTY',NIFTYNXT50:'NIFTYNXT50'};
+function marketOpenNow(){
+ const d=new Date(); const mins=d.getHours()*60+d.getMinutes(); return d.getDay()>=1&&d.getDay()<=5&&mins>=9*60+15&&mins<=15*60+40;
+}
+function liveClock(){return new Date().toLocaleTimeString('en-IN',{hour12:false})}
+function liveApiUrl(index){return 'https://www.nseindia.com/api/option-chain-indices?symbol='+encodeURIComponent(NSE_API[index]||'NIFTY')}
+function parseNseJson(j,index){
+ const rec=j?.records, arr=Array.isArray(rec?.data)?rec.data:[]; if(!arr.length)throw Error('NSE API returned no option-chain rows');
+ const rows=[]; for(const z of arr){const strike=n(z.strikePrice); if(!Number.isFinite(strike))continue; const ce=z.CE||{}, pe=z.PE||{}; rows.push({index,expiry:z.expiryDate||'',strike,ceoi:n(ce.openInterest),ceoiChg:n(ce.changeinOpenInterest),cevol:n(ce.totalTradedVolume),ceiv:n(ce.impliedVolatility),celtp:n(ce.lastPrice),ceChg:n(ce.change),cebid:n(ce.bidprice),ceask:n(ce.askPrice),pebid:n(pe.bidprice),peask:n(pe.askPrice),peChg:n(pe.change),peltp:n(pe.lastPrice),peiv:n(pe.impliedVolatility),pevol:n(pe.totalTradedVolume),peoiChg:n(pe.changeinOpenInterest),peoi:n(pe.openInterest)});}
+ if(!rows.length)throw Error('NSE API rows could not be parsed');
+ const strikes=rows.map(r=>r.strike).sort((a,b)=>a-b), step=medianDiff(strikes); const spot=n(rec.underlyingValue); const expiry=rec.expiryDates?.[0]||rows.find(r=>r.expiry)?.expiry||''; return {id:crypto.randomUUID(),index,name:'LIVE '+index+' '+(rec.timestamp||liveClock()),rows,step,spot:Number.isFinite(spot)?spot:median(rows.map(r=>r.celtp+r.strike-r.peltp)),expiryText:expiry,timestamp:rec.timestamp||liveClock(),live:true};
+}
+async function fetchLive(index){
+ if(liveBusy)return; liveBusy=true; $('liveState').textContent='FETCHING'; $('liveState').className='tag yellow'; $('liveStatus').textContent='Trying NSE live option-chain API • '+index+' • '+liveClock();
+ try{
+   const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),8000); let resp; try{resp=await fetch(liveApiUrl(index),{method:'GET',headers:{'Accept':'application/json'},cache:'no-store',signal:ctl.signal})}finally{clearTimeout(timer)}
+   if(!resp.ok)throw Error('NSE HTTP '+resp.status);
+   const j=await resp.json(); const ch=parseNseJson(j,index); const old=S.chains.find(x=>x.index===index); if(old&&old.live){ch.prev=old}
+   S.history=S.history.filter(x=>!(x.live&&x.index===index)); S.history.push(ch); S.chains=S.chains.filter(x=>x.index!==index); S.chains.push(ch); S.chains.sort((a,b)=>a.index.localeCompare(b.index)); liveLast=ch; refreshIndices(); syncEntryControls(); render();
+   const p=plansFor(ch).sort((a,b)=>b.score-a.score); renderLiveSignal(ch,p); $('liveState').textContent='LIVE'; $('liveState').className='tag'; $('liveStatus').innerHTML='<span class="ok">✓ NSE data received '+liveClock()+'</span> • spot '+fmt(ch.spot)+' • '+ch.rows.length+' strikes • refresh attempts every 15s while running.';
+ }catch(e){ $('liveState').textContent='BLOCKED'; $('liveState').className='tag'; $('liveStatus').innerHTML='<span class="err" style="display:block">Live request failed: '+String(e.message||e)+'<br><span class="small">Browser/NSE CORS or access protection can prevent a standalone HTML file from reading NSE directly. No fake signal is generated. Use NSE CSV upload/paste, or connect a permitted broker/data API for guaranteed live feed.</span></span>'; }
+ finally{liveBusy=false;}
+}
+function renderLiveSignal(ch,p){const box=$('liveSignal'); if(!box)return; if(!p.length){box.innerHTML='<div class="warn">NSE data is live, but no setup currently passes the selected score/strike filters.</div>';return;} const top=p[0], second=p[1]; box.innerHTML='<div class="atm-dual">'+[top,second].filter(Boolean).map(x=>'<div class="card"><span class="atm-badge">LIVE '+x.index+' '+x.r.strike+' '+x.side+'</span> <span class="atm-badge">Score '+x.score+'</span><div class="atm-plan-price" style="margin-top:6px">ENTRY ₹'+x.entry.toFixed(2)+'</div><div class="atm-plan-grid"><div class="atm-kv"><small>STOP LOSS</small><b>₹'+x.sl.toFixed(2)+'</b></div><div class="atm-kv"><small>TARGET 1</small><b>₹'+x.target1.toFixed(2)+'</b></div><div class="atm-kv"><small>TARGET 2</small><b>₹'+x.target2.toFixed(2)+'</b></div><div class="atm-kv"><small>TIME EXIT</small><b>'+x.timeStop+'</b></div></div><div class="small" style="margin-top:7px">'+(x.sg||'FLOW')+' • '+x.dir+' • underlying target '+x.targetU.toFixed(0)+' • invalidation '+x.invU.toFixed(0)+'</div></div>').join('')+'</div>';}
+function startLive(){if(liveTimer)clearInterval(liveTimer); const idx=$('liveIndex').value; fetchLive(idx); liveTimer=setInterval(()=>fetchLive($('liveIndex').value),15000);}
+function stopLive(){if(liveTimer)clearInterval(liveTimer);liveTimer=null;$('liveState').textContent='OFF';$('liveState').className='tag';$('liveStatus').textContent='Live mode stopped.';}
+$('liveStart').onclick=startLive; $('liveOnce').onclick=()=>fetchLive($('liveIndex').value); $('liveStop').onclick=stopLive;
+
+function renderMarketState(){
+ const box=$('marketState');if(!box)return;box.innerHTML='';
+ if(!S.chains.length){box.innerHTML='<div class="card small">No chain loaded.</div>';return;}
+ for(const c of S.chains){const tf=$('tf')?.value||'15m',tc=trendContext(c,tf),spot=Number($('spotOverride').value)||c.spot,step=c.step;let sb=0,sr=0,db=0,dr=0;
+  for(const r of c.rows.filter(r=>Math.abs(r.strike-spot)<=step*3)){for(const side of ['CE','PE']){
+    const sf=snapshotFlow(c,r,side),dc=classifyFlow(side==='CE'?r.ceChg:r.peChg,side==='CE'?r.ceoiChg:r.peoiChg);
+    if(sf.cls){const w=Math.log10(Math.abs(sf.oiDelta||0)+10);if(flowUnderlyingBias(side,sf.cls)>0)sb+=w;else sr+=w;}
+    if(dc){const oi=side==='CE'?r.ceoiChg:r.peoiChg,w=Math.log10(Math.abs(Number.isFinite(oi)?oi:0)+10);if(flowUnderlyingBias(side,dc)>0)db+=w;else dr+=w;}
+  }}
+  const snapFlow=sb>sr?'BULLISH':sr>sb?'BEARISH':'MIXED',dailyFlow=db>dr?'BULLISH':dr>db?'BEARISH':'MIXED',flowConflict=snapFlow!=='MIXED'&&dailyFlow!=='MIXED'&&snapFlow!==dailyFlow;
+  const conflictTrend=tc.bias!==0&&((snapFlow==='BULLISH'&&tc.bias<0)||(snapFlow==='BEARISH'&&tc.bias>0));
+  const state=flowConflict||conflictTrend?'MIXED / BLOCK':(tc.bias!==0?tc.bias>0?'BULLISH':'BEARISH':snapFlow);
+  box.insertAdjacentHTML('beforeend',`<div class="card"><span class="tag">${c.index}</span><span class="tag">${tfLabel(tf)}</span><b>${state}</b><br><small>Spot ${fmt(spot)} • Snapshot flow ${snapFlow} • Daily OI flow ${dailyFlow} • EMA8 ${Number.isFinite(tc.ema8)?fmt(tc.ema8):'—'} • EMA13 ${Number.isFinite(tc.ema13)?fmt(tc.ema13):'—'} • WT1 ${Number.isFinite(tc.wt1)?tc.wt1.toFixed(1):'—'} • WT2 ${Number.isFinite(tc.wt2)?tc.wt2.toFixed(1):'—'} • ${tc.status}</small></div>`);
+ }
+}
+function render(){
+ S.plans=S.chains.flatMap(plansFor).sort((a,b)=>b.score-a.score);
+ let p=S.plans; $('total').textContent=p.length;$('bull').textContent=p.filter(x=>x.dir==='Bullish').length;$('bear').textContent=p.filter(x=>x.dir==='Bearish').length;
+ let c=S.chains[0];if(c){let sp=Number($('spotOverride').value)||c.spot;let at=c.rows.reduce((a,b)=>Math.abs(b.strike-sp)<Math.abs(a.strike-sp)?b:a).strike;$('spot').textContent=sp.toFixed(2);$('atm').textContent=at;$('dte').textContent=daysTo(c.expiryText)??'—'}else{$('spot').textContent='—';$('atm').textContent='—';$('dte').textContent='—'}
+ $('atmEntry').textContent='—'; if(c){
+   const ar=c.rows.reduce((a,b)=>Math.abs(b.strike-(Number($('spotOverride').value)||c.spot))<Math.abs(a.strike-(Number($('spotOverride').value)||c.spot))?b:a);
+   const ceEntry=Number.isFinite(ar.ceask)&&ar.ceask>0?ar.ceask:ar.celtp;
+   const peEntry=Number.isFinite(ar.peask)&&ar.peask>0?ar.peask:ar.peltp;
+   $('atmEntry').textContent=`₹${Number(ceEntry||0).toFixed(2)} / ₹${Number(peEntry||0).toFixed(2)}`;
+ }
+ $('top').textContent=p[0]?`${p[0].index} ${p[0].side} ${p[0].r.strike}`:'—';
+ renderAtmDual();
+ let tb=$('plans');tb.innerHTML='';
+ if(!p.length)tb.innerHTML='<tr><td colspan="19" class="small">No 70+ setup passes the current filters.</td></tr>';
+ for(const x of p){let tr=document.createElement('tr');tr.innerHTML=`<td>${x.index}</td><td>${x.ch.expiryText}</td><td>${x.spot.toFixed(2)}</td><td>${x.atm}</td><td><b>${x.r.strike}</b></td><td>${x.side}</td><td class="${x.sg==='SC'?'cyan':'green'}">${x.sg||'FLOW'}</td><td class="${x.dir==='Bullish'?'green':'red'}">${x.dir}</td><td>₹${x.entry.toFixed(2)}</td><td>₹${x.sl.toFixed(2)}</td><td>₹${x.target1.toFixed(2)}</td><td>₹${x.target2.toFixed(2)}</td><td>${x.targetU.toFixed(0)}</td><td>${Number.isFinite(x.wall)?x.wall:'—'}</td><td>${x.side==='CE'?fmt(x.r.ceoiChg):fmt(x.r.peoiChg)}</td><td>${x.side==='CE'?fmt(x.r.ceChg):fmt(x.r.peChg)}%</td><td>${fmt(x.side==='CE'?x.r.cevol:x.r.pevol)}</td><td class="score">${x.score}</td><td>${tfLabel(x.tf)}</td>`;tb.appendChild(tr)}
+ let pc=$('planCards');pc.innerHTML='';for(const x of p.slice(0,4)){pc.insertAdjacentHTML('beforeend',`<div class="card"><span class="tag">${x.index}</span><span class="tag">${x.side}</span><span class="tag">${x.sg||'FLOW'}</span><br><b>${x.r.strike} ${x.side} @ ₹${x.entry.toFixed(2)}</b><br><small>Flow ${x.sf.source} • Entry mode: ${$('entryMode')?.selectedOptions?.[0]?.text||'Auto'} • SL ₹${x.sl.toFixed(2)} • T1 ₹${x.target1.toFixed(2)} • T2 ₹${x.target2.toFixed(2)} • score ${x.score}</small><br><small>Underlying objective ${x.targetU.toFixed(0)} • invalidation ${x.invU.toFixed(0)} • time exit ${x.timeStop}</small></div>`)}
+ renderDiag();renderChain();renderSpikes();
+}
+function fmt(x){return Number.isFinite(x)?x.toLocaleString('en-IN',{maximumFractionDigits:2}):'—'}
+function renderDiag(){
+ if(!$('diag'))return;
+ if(!S.chains.length){$('diag').textContent='—';return}
+ $('diag').innerHTML=S.chains.map(c=>{let near=c.rows.filter(r=>Math.abs(r.strike-c.spot)<=c.step*6);let co=near.reduce((a,r)=>a+(r.ceoi||0),0),po=near.reduce((a,r)=>a+(r.peoi||0),0);let cc=near.reduce((a,r)=>a+(r.ceoiChg||0),0),pc=near.reduce((a,r)=>a+(r.peoiChg||0),0);let mxC=c.rows.filter(r=>Number.isFinite(r.ceoi)).sort((a,b)=>b.ceoi-a.ceoi)[0],mxP=c.rows.filter(r=>Number.isFinite(r.peoi)).sort((a,b)=>b.peoi-a.peoi)[0];return `<b>${c.index}</b> • spot/parity ${c.spot.toFixed(2)} • PCR(±6 strikes) ${(po/(co||1)).toFixed(2)} • ΔOI CE ${fmt(cc)} / PE ${fmt(pc)} • max CE OI ${mxC?.strike??'—'} • max PE OI ${mxP?.strike??'—'} • strikes ${c.rows.length}`}).join('<br>')}
+function arrow(v){if(!Number.isFinite(v)||Math.abs(v)<1e-12)return ['→','mini-flat'];return v>0?['↑','mini-up']:['↓','mini-down']}
+function strikeArrowMarkup(r){
+ const cp=arrow(r.ceChg), co=arrow(r.ceoiChg), pp=arrow(r.peChg), po=arrow(r.peoiChg);
+ return `<div class="strike-wrap" title="CE: Price ${r.ceChg>0?'Up':r.ceChg<0?'Down':'Flat'}, OI ${r.ceoiChg>0?'Up':r.ceoiChg<0?'Down':'Flat'} | PE: Price ${r.peChg>0?'Up':r.peChg<0?'Down':'Flat'}, OI ${r.peoiChg>0?'Up':r.peoiChg<0?'Down':'Flat'}"><span class="side-mini">CE <span class="mini-arrow ${cp[1]}">${cp[0]}</span><span class="mini-arrow ${co[1]}">${co[0]}</span></span><span class="strike-core">${fmt(r.strike)}</span><span class="side-mini"><span class="mini-arrow ${pp[1]}">${pp[0]}</span><span class="mini-arrow ${po[1]}">${po[0]}</span> PE</span></div>`;
+}
+function renderChain(){
+ let th=document.querySelector('#chain thead'),tb=document.querySelector('#chain tbody');if(!th||!tb)return;th.innerHTML='<tr><th>INDEX</th><th>STRIKE • PRICE/OI ARROWS</th><th>OPTION</th><th>CE OI</th><th>CE ΔOI</th><th>CE VOL</th><th>CE LTP</th><th>CE Δ</th><th>PE LTP</th><th>PE Δ</th><th>PE VOL</th><th>PE ΔOI</th><th>PE OI</th></tr>';tb.innerHTML='';
+ for(const c of S.chains)for(const r of c.rows){let tr=document.createElement('tr');tr.innerHTML=`<td>${c.index}</td><td>${strikeArrowMarkup(r)}</td><td>CE + PE</td><td>${fmt(r.ceoi)}</td><td>${fmt(r.ceoiChg)}</td><td>${fmt(r.cevol)}</td><td>${fmt(r.celtp)}</td><td>${fmt(r.ceChg)}</td><td>${fmt(r.peltp)}</td><td>${fmt(r.peChg)}</td><td>${fmt(r.pevol)}</td><td>${fmt(r.peoiChg)}</td><td>${fmt(r.peoi)}</td>`;tb.appendChild(tr)}
+ if(tb.parentElement&&!document.getElementById('strikeLegend')){const d=document.createElement('div');d.id='strikeLegend';d.className='strike-legend';d.innerHTML='<b>Strike arrows:</b> <span class="green">↑ Price up</span> <span class="red">↓ Price down</span> <span class="green">↑ OI up</span> <span class="red">↓ OI down</span> <span>CE arrows appear left of strike; PE arrows appear right.</span>';tb.parentElement.after(d)}
+}
+function refreshIndices(){let x=$('indices');x.innerHTML='';for(const i of IND){x.insertAdjacentHTML('beforeend',`<label><input type="checkbox" id="i_${i}" ${S.chains.some(c=>c.index===i)?'checked':''}> ${i}</label>`);$('i_'+i).onchange=render}}
+function syncEntryControls(){
+ const mode=$('entryMode')?.value||'auto';
+ const m=$('manualStrike');
+ if(m)m.disabled=mode!=='manual';
+ if(mode==='atm' && S.chains[0]){
+   const c=S.chains[0], sp=Number($('spotOverride').value)||c.spot;
+   const at=c.rows.reduce((a,b)=>Math.abs(b.strike-sp)<Math.abs(a.strike-sp)?b:a).strike;
+   if(m && !m.value)m.value=at;
+ }
+}
+['entryMode','manualStrike','spotOverride','minScore','slPct','rr','window','tf','capital','risk','spikePct','spikeVol','spikeLook','atmPlanStrike','minTargetPts','maxTargetPts'].forEach(id=>{const el=$(id);if(el){el.addEventListener('change',()=>{syncEntryControls();render();});el.addEventListener('input',()=>{if(id==='manualStrike'||id==='spotOverride')syncEntryControls();render();});}});
+function add(ch){
+  const key=snapshotKey(ch)+'|'+ch.index+'|'+ch.expiryText;
+  S.history=S.history.filter(x=>(snapshotKey(x)+'|'+x.index+'|'+x.expiryText)!==key); S.history.push(ch);
+  S.history.sort((a,b)=>String(snapshotKey(a)).localeCompare(String(snapshotKey(b))));
+  S.chains=S.chains.filter(x=>x.index!==ch.index); S.chains.push(ch); refreshIndices(); syncEntryControls(); render(); runBacktest();
+  $('msg').innerHTML=`<div class="ok">✓ ${ch.index}: ${ch.rows.length} strikes read. Spot/parity ≈ ${ch.spot.toFixed(2)}. CE/PE mapping locked to NSE 23-column format. History snapshots loaded: ${S.history.length}.</div>`;
+}
+async function load(fs){for(const f of fs)try{add(parse(await f.text(),idxGuess(f.name),f.name))}catch(e){$('msg').innerHTML=`<div class="err">${f.name}: ${e.message}</div>`}}
+function parseSnapshotDate(ch){
+ let k=snapshotKey(ch); let d=new Date(k); return isNaN(d)?null:d;
+}
+function btSignalRows(ch){return plansFor(ch);}
+function getOptionPrice(ch,strike,side){
+ let r=ch.rows.find(x=>Math.abs(x.strike-strike)<Math.max(0.01,ch.step/3));if(!r)return NaN;
+ const bid=side==='CE'?r.cebid:r.pebid, ltp=side==='CE'?r.celtp:r.peltp;
+ return Number.isFinite(bid)&&bid>0?bid:ltp;
+}
+function runBacktest(){
+ const hs=[...S.history].filter(x=>snapshotTime(x)).sort((a,b)=>snapshotTime(a)-snapshotTime(b));
+ $('btSnapshots').textContent=hs.length;$('btSignals').textContent='0';$('btTrades').textContent='0';$('btWins').textContent='0';$('btLosses').textContent='0';$('btWinRate').textContent='—';
+ const tbody=$('btRows'),tfBody=$('tfRows');tbody.innerHTML='';tfBody.innerHTML='';
+ if(hs.length<2){tbody.innerHTML='<tr><td colspan="14" class="small">Need at least 2 timestamped snapshots. No performance claim is made from one snapshot.</td></tr>';tfBody.innerHTML='<tr><td colspan="8" class="small">Need multiple timestamped snapshots for timeframe testing.</td></tr>';$('btMsg').textContent='Insufficient timestamped history.';return;}
+ let allTrades=[];
+ for(const tf of Object.keys(TF_CFG)){const maxMin=TF_CFG[tf].mins;
+  for(let i=0;i<hs.length-1;i++){const ch=hs[i],next=hs.slice(i+1).filter(z=>seriesId(z)===seriesId(ch));if(!next.length)continue;const sigs=btSignalRows(ch);$('btSignals').textContent=Number($('btSignals').textContent)+sigs.length;
+   for(const x of sigs){const t0=snapshotTime(ch),window=next.filter(z=>(snapshotTime(z)-t0)<=maxMin*60000);if(!window.length)continue;let exit=null,result='TIME',hold=0;
+    for(const h of window){const px=getOptionPrice(h,x.r.strike,x.side);if(!Number.isFinite(px))continue;hold++;if(px<=x.sl){exit=px;result='SL';break}if(px>=x.target1){exit=px;result='TARGET';break}}
+    if(exit===null){const px=getOptionPrice(window.at(-1),x.r.strike,x.side);if(!Number.isFinite(px))continue;exit=px}
+    const rmult=(exit-x.entry)/Math.max(.01,x.entry-x.sl);allTrades.push({x,exit,result,hold,rmult,date:snapshotKey(ch),tf});
+   }
+  }
+ }
+ $('btTrades').textContent=allTrades.length;const dec=allTrades.filter(t=>t.result==='TARGET'||t.result==='SL'),wins=dec.filter(t=>t.result==='TARGET').length,losses=dec.filter(t=>t.result==='SL').length;
+ $('btWins').textContent=wins;$('btLosses').textContent=losses;$('btWinRate').textContent=dec.length?(wins/dec.length*100).toFixed(1)+'%':'—';
+ for(const tf of Object.keys(TF_CFG)){const ts=allTrades.filter(t=>t.tf===tf),tw=ts.filter(t=>t.result==='TARGET').length,tl=ts.filter(t=>t.result==='SL').length,tt=ts.filter(t=>t.result==='TIME').length,dd=tw+tl,wr=dd?tw/dd*100:NaN,status=dd>=30?'Data-supported':dd>=10?'Early sample':'Insufficient data';tfBody.insertAdjacentHTML('beforeend',`<tr><td><b>${tfLabel(tf)}</b></td><td>${TF_CFG[tf].mins===375?'1 trading day':TF_CFG[tf].mins+' min'}</td><td>${ts.length}</td><td class="green">${tw}</td><td class="red">${tl}</td><td class="yellow">${tt}</td><td>${Number.isFinite(wr)?wr.toFixed(1)+'%':'—'}</td><td>${status}</td></tr>`)}
+ for(const t of allTrades.slice(-300)){const x=t.x;tbody.insertAdjacentHTML('beforeend',`<tr><td>${t.date}</td><td>${x.ch.index}</td><td>${x.ch.expiryText}</td><td>${x.r.strike}</td><td>${x.side}</td><td>${x.sg||''}</td><td>${tfLabel(t.tf)}</td><td>₹${x.entry.toFixed(2)}</td><td>₹${x.sl.toFixed(2)}</td><td>₹${x.target1.toFixed(2)}</td><td>₹${t.exit.toFixed(2)}</td><td class="${t.result==='TARGET'?'green':t.result==='SL'?'red':'yellow'}">${t.result}</td><td>${t.rmult.toFixed(2)}R</td><td>${t.hold}</td></tr>`)}
+ $('btMsg').textContent=allTrades.length>=100?`Backtest has ${allTrades.length} observed timeframe-trade records from timestamped snapshots. Historical win rate is descriptive, not a future probability.`:`Only ${allTrades.length} observed timeframe-trade records. Upload more timestamped snapshots; missing trades are not invented.`;
+}
+$('files').onchange=e=>load([...e.target.files]);
+$('drop').ondragover=e=>{e.preventDefault();$('drop').classList.add('drag')};$('drop').ondragleave=()=>$('drop').classList.remove('drag');$('drop').ondrop=e=>{e.preventDefault();$('drop').classList.remove('drag');load([...e.dataTransfer.files])};
+$('addPaste').onclick=()=>{try{add(parse($('paste').value,$('pasteIndex').value,'Pasted chain'));$('paste').value=''}catch(e){$('msg').innerHTML=`<div class="err">${e.message}</div>`}};
+$('sample').onclick=()=>{try{add(parse(EMBEDDED,'NIFTY','NIFTY_29-Sep-2026.csv'))}catch(e){$('msg').innerHTML=`<div class="err">${e.message}</div>`}};
+$('clear').onclick=()=>{S.chains=[];S.plans=[];S.history=[];refreshIndices();render();runBacktest();$('msg').innerHTML=''};
+$('export').onclick=()=>{if(!S.plans.length)return;let h=['INDEX','EXPIRY','SPOT','ATM','ENTRY_STRIKE','SIDE','SIGNAL','DIRECTION','ENTRY','SL','TARGET1','TARGET2','UNDERLYING_TARGET','OI_WALL','DELTA_OI','PRICE_CHG','VOLUME','SETUP_SCORE','TIMEFRAME'];let a=[h,...S.plans.map(x=>[x.index,x.ch.expiryText,x.spot,x.atm,x.r.strike,x.side,x.sg,x.dir,x.entry,x.sl,x.target1,x.target2,x.targetU,x.wall,x.side==='CE'?x.r.ceoiChg:x.r.peoiChg,x.side==='CE'?x.r.ceChg:x.r.peChg,x.side==='CE'?x.r.cevol:x.r.pevol,x.score,x.tf])];let csv=a.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');let z=document.createElement('a');z.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));z.download='index_70plus_option_plans.csv';z.click();URL.revokeObjectURL(z.href)};
+['tf','dataStep','minScore','slPct','rr','window','spotOverride','capital','risk'].forEach(id=>$(id).addEventListener('input',render));
+refreshIndices();render();
+runBacktest();
+</script>
+</body></html>
+<script>window.addEventListener("DOMContentLoaded",()=>{try{syncEntryControls();}catch(e){}});</script>

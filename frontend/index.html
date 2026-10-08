@@ -74,10 +74,28 @@ th{color:var(--mut);font-weight:normal}
       <div class="mut" style="margin-top:5px">Credentials go to your HTTPS backend; they are not bundled into the APK.</div>
     </div>
     <div class="card">
+      <h3>AI API</h3>
+      <input id="aiKey" type="password" placeholder="OpenAI API Key">
+      <div class="row" style="margin-top:6px"><input id="aiModel" value="gpt-4o" placeholder="AI Model"><button class="pri" id="btnAIKey">Save AI Key</button></div>
+      <div class="mut" style="margin-top:5px">AI key HTTPS backend par set hoti hai; APK ke andar bundle nahi hoti.</div>
+    </div>
+    <div class="card">
+      <h3>Index F&amp;O</h3>
+      <div class="row">
+        <select id="fIndex"><option>NIFTY</option><option>BANKNIFTY</option><option>FINNIFTY</option><option>MIDCPNIFTY</option><option>SENSEX</option><option>BANKEX</option></select>
+        <select id="fSegment"><option value="OPTIDX">OPTIONS</option><option value="FUTIDX">FUTURES</option></select>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <select id="fEx"><option value="NFO">NSE F&amp;O</option><option value="BFO">BSE F&amp;O</option></select>
+        <select id="fExp"></select>
+      </div>
+      <button id="btnFno" style="margin-top:6px;width:100%">Auto Select Index &amp; Load</button>
+    </div>
+    <div class="card">
       <h3>F&amp;O</h3>
       <div class="row">
         <select id="fEx"><option value="NFO">NSE F&amp;O</option><option value="BFO">BSE F&amp;O</option></select>
-        <input id="fName" value="NIFTY" placeholder="NIFTY / BANKNIFTY / SENSEX">
+        <input id="fName" value="NIFTY" placeholder="Index" style="display:none">
       </div>
       <div class="row" style="margin-top:6px">
         <select id="fExp"></select>
@@ -166,7 +184,7 @@ function log(m){const d=$('#log');d.innerHTML+=`<div>${m}</div>`;d.scrollTop=d.s
 const f2=n=>(n==null||isNaN(n))?'—':Number(n).toFixed(2);
 
 // ---------- status
-async async function loadAngelConfig(){
+async function loadAngelConfig(){
   try{
     const c=await api('/api/angel/config');
     $('#aClient').value=c.client_code||'';
@@ -179,15 +197,37 @@ $('#btnAngel').onclick=async()=>{
   try{const r=await api('/api/angel/config',{body});log(r.ok?'Angel One connected':'Angel connect failed: '+(r.error||'unknown'));loadStatus()}catch(e){log('Angel connect failed: '+e.message)}
 };
 async function loadFnoExpiries(){
+  $('#fName').value=$('#fIndex').value;
+  $('#fEx').value=['SENSEX','BANKEX'].includes($('#fIndex').value)?'BFO':'NFO';
   try{
-    const e=await api('/api/expiries?name='+encodeURIComponent($('#fName').value)+'&exchange='+$('#fEx').value);
+    const e=await api('/api/expiries?name='+encodeURIComponent($('#fName').value)+'&exchange='+$('#fEx').value+'&segment='+$('#fSegment').value);
     $('#fExp').innerHTML=e.map(x=>'<option>'+x+'</option>').join('');
     $('#uName').value=$('#fName').value; $('#uExp').innerHTML=e.map(x=>'<option>'+x+'</option>').join('');
   }catch(err){log('F&O expiries: '+err.message)}
 }
+$('#fIndex').onchange=loadFnoExpiries;
+$('#fSegment').onchange=loadFnoExpiries;
 $('#fEx').onchange=loadFnoExpiries;
-$('#fName').onchange=loadFnoExpiries;
-$('#btnFno').onclick=async()=>{await loadFnoExpiries();$('#btnChain').click()};
+$('#btnFno').onclick=async()=>{await loadFnoExpiries();if($('#fSegment').value==='OPTIDX')$('#btnChain').click();else loadFutures()};
+
+async function loadFutures(){
+  try{
+    const rows=await api('/api/futures?name='+encodeURIComponent($('#fIndex').value)+'&exchange='+$('#fEx').value);
+    $('#chain').innerHTML='<tr><th>Future</th><th>Expiry</th><th>LTP</th></tr>'+rows.map(r=>'<tr><td>'+r.symbol+'</td><td>'+r.expiry+'</td><td>'+f2(r.ltp)+'</td></tr>').join('');
+    rows.forEach(r=>addWatch({exchange:r.exchange,token:r.token,symbol:r.symbol},false));
+    renderWL();
+  }catch(e){log('futures: '+e.message)}
+}
+
+async function loadAIConfig(){
+  try{const c=await api('/api/ai/config');$('#aiModel').value=c.model||'gpt-4o';}catch(e){log('AI config: '+e.message)}
+}
+$('#btnAIKey').onclick=async()=>{
+  try{const r=await api('/api/ai/config',{body:{api_key:$('#aiKey').value,model:$('#aiModel').value}});
+  log(r.ok?'AI key saved':'AI key save failed: '+(r.error||'unknown'));loadStatus();
+  $('#aiKey').value='';
+}catch(e){log('AI key: '+e.message)}
+};
 function loadStatus(){
   status=await api('/api/status');
   setPill('#pAngel',status.logged_in?'Angel: connected':'Angel: '+(status.login_error||'logging in…'),status.logged_in?'ok':'bad');
@@ -216,6 +256,7 @@ function connectWS(){
 }
 connectWS();
 loadAngelConfig();
+loadAIConfig();
 loadFnoExpiries();
 api('/api/snapshot').then(s=>{ticks=s.ticks;watch=s.meta;renderWL();renderPos(s.positions)});
 
@@ -285,7 +326,7 @@ function drawLines(plan){
 // ---------- option chain
 $('#uName').onchange=loadExpiries;
 async function loadExpiries(){
-  try{const e=await api('/api/expiries?name='+encodeURIComponent($('#fName').value)+'&exchange='+$('#fEx').value);$('#uExp').innerHTML=e.map(x=>`<option>${x}</option>`).join('')}catch(err){log('expiries: '+err.message)}
+  try{const e=await api('/api/expiries?name='+encodeURIComponent($('#fIndex').value)+'&exchange='+$('#fEx').value+'&segment='+$('#fSegment').value);$('#uExp').innerHTML=e.map(x=>`<option>${x}</option>`).join('')}catch(err){log('expiries: '+err.message)}
 }
 loadExpiries();
 $('#btnChain').onclick=async()=>{

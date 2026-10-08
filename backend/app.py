@@ -86,6 +86,33 @@ async def _broadcast(payload: dict):
 
 
 # ---------------------------------------------------------------- Angel login
+class AngelConfig(BaseModel):
+    api_key: str = Field("", max_length=200)
+    client_code: str = Field("", max_length=100)
+    pin: str = Field("", max_length=100)
+    totp_secret: str = Field("", max_length=200)
+    trading_mode: str = Field("paper", pattern="^(paper|live)$")
+
+
+@app.get("/api/angel/config")
+def angel_config():
+    return {"configured": all([API_KEY, CLIENT_CODE, PIN, TOTP_SECRET]), "client_code": CLIENT_CODE, "trading_mode": TRADING_MODE, "logged_in": S.logged_in}
+
+
+@app.post("/api/angel/config")
+def set_angel_config(c: AngelConfig):
+    global API_KEY, CLIENT_CODE, PIN, TOTP_SECRET, TRADING_MODE
+    API_KEY = c.api_key.strip()
+    CLIENT_CODE = c.client_code.strip()
+    PIN = c.pin.strip()
+    TOTP_SECRET = c.totp_secret.strip()
+    TRADING_MODE = c.trading_mode.lower()
+    S.logged_in = False
+    S.login_error = ""
+    ok = angel_login()
+    return {"ok": ok, "logged_in": S.logged_in, "error": S.login_error, "trading_mode": TRADING_MODE}
+
+
 def angel_login():
     S.login_error = ""
     if not all([API_KEY, CLIENT_CODE, PIN, TOTP_SECRET]):

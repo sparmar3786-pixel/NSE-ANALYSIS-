@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from SmartApi import SmartConnect
 from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 from openai import OpenAI
@@ -34,6 +34,8 @@ TRADING_MODE = os.getenv("TRADING_MODE", "paper").lower()  # paper | live
 MAX_QTY = int(os.getenv("MAX_QTY_PER_ORDER", "100"))
 
 EXCH_TYPE = {"NSE": 1, "NFO": 2, "BSE": 3, "BFO": 4, "MCX": 5, "NCDEX": 7, "CDS": 13}
+FNO_SEGMENTS = {"NFO", "BFO"}
+INDEX_NAMES = {"NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"}
 MASTER_URL = "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json"
 
 app = FastAPI(title="Trading Terminal")
@@ -93,6 +95,21 @@ class AngelConfig(BaseModel):
     totp_secret: str = Field("", max_length=200)
     trading_mode: str = Field("paper", pattern="^(paper|live)$")
 
+
+class AIConfig(BaseModel):
+    api_key: str = Field("", max_length=500)
+    model: str = Field("gpt-4o", max_length=100)
+
+@app.get("/api/ai/config")
+def ai_config():
+    return {"configured": bool(OPENAI_KEY), "model": OPENAI_MODEL}
+
+@app.post("/api/ai/config")
+def set_ai_config(c: AIConfig):
+    global OPENAI_KEY, OPENAI_MODEL
+    OPENAI_KEY = c.api_key.strip()
+    OPENAI_MODEL = c.model.strip() or "gpt-4o"
+    return {"ok": bool(OPENAI_KEY), "model": OPENAI_MODEL}
 
 @app.get("/api/angel/config")
 def angel_config():
@@ -339,15 +356,31 @@ def search(q: str):
 
 
 @app.get("/api/expiries")
-def expiries(name: str, exchange: str = "NFO"):
-    exchange = exchange.upper()
+def expiries(name: str, exchange: str = "NFO", segment: str = "OPTIDX"):
+    exchange = exchange.upper(); segment = segment.upper()
     if exchange not in FNO_SEGMENTS:
         raise HTTPException(400, "exchange must be NFO or BFO")
+    if segment not in ("OPTIDX", "FUTIDX"):
+        raise HTTPException(400, "segment must be OPTIDX or FUTIDX")
     load_master()
     name = name.upper()
-    exp = {r["expiry"] for r in S.master if r["exch_seg"] == exchange and r["name"] == name and r["instrumenttype"] in ("OPTIDX", "OPTSTK")}
+    if name not in INDEX_NAMES:
+        raise HTTPException(400, "Only supported index F&O")
+    exp = {r["expiry"] for r in S.master if r["exch_seg"] == exchange and r["name"] == name and r["instrumenttype"] == segment}
     return sorted(exp, key=lambda x: dt.datetime.strptime(x, "%d%b%Y"))
 
+
+@app.get("/api/futures")
+def futures(name: str, exchange: str = "NFO"):
+    exchange = exchange.upper(); name = name.upper()
+    if exchange not in FNO_SEGMENTS:
+        raise HTTPException(400, "exchange must be NFO or BFO")
+    if name not in INDEX_NAMES:
+        raise HTTPException(400, "Only supported index F&O")
+    load_master()
+    rows = [r for r in S.master if r["exch_seg"] == exchange and r["name"] == name and r["instrumenttype"] == "FUTIDX"]
+    rows.sort(key=lambda r: dt.datetime.strptime(r["expiry"], "%d%b%Y"))
+    return [{"symbol":r["symbol"],"token":r["token"],"exchange":exchange,"expiry":r["expiry"],"lot":int(r["lotsize"])} for r in rows[:12]]
 
 @app.get("/api/options")
 def options(name: str, expiry: str, spot: float, n: int = 8, exchange: str = "NFO"):
